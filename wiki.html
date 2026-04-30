@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Wiki Technique - Vélomat</title>
+    </head>
+<body>
+
+    <h1 align="center">Wiki du Projet Vélomat</h1>
+    <p align="center">Documentation technique, architecture et accès.</p>
+
+    <hr>
+
+    <h2>1. Architecture du Projet</h2>
+    <p>Le projet <strong>????</strong> Solutions de mobilité Saint-Malo est composé de deux entités distinctes hébergées sur le même serveur :</p>
+    
+    <ul>
+        <li><strong>Site Vitrine (Dossier <code>/wordpress</code>) :</strong>
+            <ul>
+                <li>Propulsé par le CMS WordPress.</li>
+                <li>Thème adapté pour la présentation de l'entreprise.</li>
+                <li>Module spécifique développé par l'équipe pour l'affichage dynamique des "Partenaires".</li>
+            </ul>
+        </li>
+        <br>
+        <li><strong>Intranet (Dossier <code>/intranet</code>) :</strong>
+            <ul>
+                <li>Développé "From Scratch" en PHP 7.4+.</li>
+                <li>Interface utilisant le framework Bootstrap 5.</li>
+                <li><strong>Données :</strong> Aucune base de données MySQL n'est utilisée. Le stockage se fait via :
+                    <ul>
+                        <li>Fichiers <code>.json</code> pour les utilisateurs et la configuration.</li>
+                        <li>Fichiers <code>.csv</code> pour les annuaires (clients, partenaires).</li>
+                        <li>Fichiers <code>.txt</code> pour les documents partagés.</li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+    </ul>
+
+    <hr>
+
+    <h2>2. Fonctionnalités et Utilisation</h2>
+
+    <h3>Partie Vitrine (Publique)</h3>
+    <ul>
+        <li><strong>Consultation :</strong> Pages "Accueil", "Qui sommes-nous", "Histoire" et "Activités".</li>
+        <li><strong>Partenaires :</strong> Visualisation des partenaires via un plugin personnalisé (données synchronisées avec l'intranet).</li>
+    </ul>
+
+    <h3>Partie Intranet (Privée)</h3>
+    <ul>
+        <li><strong>Authentification :</strong> Système de login sécurisé par lecture de fichiers JSON.</li>
+        <li><strong>Gestion des fichiers :</strong> Upload, visualisation et suppression de fichiers (.txt, .csv) partagés entre collaborateurs.</li>
+        <li><strong>Annuaires (CRUD) :</strong>
+            <ul>
+                <li>Gestion des employés (12 pers. min) : Ajout/Modif/Suppr de profils avec photo.</li>
+                <li>Gestion des clients (30 pers. min) : Liste, détails et téléchargement de fiches.</li>
+                <li>Gestion des partenaires (5 min) : Les modifications ici se répercutent sur la Vitrine.</li>
+            </ul>
+        </li>
+    </ul>
+
+    <hr>
+
+    <h2>3. Identifiants et Tests</h2>
+    <p>Voici les comptes de test configurés pour accéder à l'Intranet selon les groupes utilisateurs :</p>
+
+    <table border="1" cellpadding="10" width="80%">
+        <thead>
+            <tr>
+                <th align="left">Groupe</th>
+                <th align="left">Identifiant (Login)</th>
+                <th align="left">Mot de passe</th>
+                <th align="left">Droits spécifiques</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Administrateur</strong></td>
+                <td>admin</td>
+                <td>admin2026</td> <td>Accès total, gestion des utilisateurs.</td>
+            </tr>
+            <tr>
+                <td><strong>Direction</strong></td>
+                <td>directeur</td>
+                <td>dir2026</td> <td>Accès complet aux annuaires et statistiques.</td>
+            </tr>
+            <tr>
+                <td><strong>Manager</strong></td>
+                <td>manager</td>
+                <td>man2026</td> <td>Gestion des équipes et clients.</td>
+            </tr>
+            <tr>
+                <td><strong>Salarié</strong></td>
+                <td>salarie</td>
+                <td>user2026</td> <td>Consultation des fichiers, accès restreint.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <br>
+    <hr>
+    
+    <p align="center">
+        <a href="infos.html">Retour à la page Infos</a> | 
+        <a href="./intranet">Accès Intranet</a> | 
+        <a href="./wordpress">Accès Vitrine</a>
+    </p>
+
+</body>
+</html>
