@@ -1,0 +1,20 @@
+<?php
+/*
+Plugin Name: VÃlomat - Gestion Partenaires
+Description: Module d'affichage dynamique des partenaires via fichiers CSV.
+Author: Leny Chopis
+Lot : 4 !!
+Version: 1.0
+*/
+
+function rendu_partenaires_jossel() {
+
+$contenu =  "<h2> Nos partenaires ! </h2>" ;
+$contenu .= "<P> Liste en cour de chargement </p>" ;
+return $contenu ; 
+
+}
+
+add_shortcode('liste_partenaire','rendu_partenaires_jossel');
+
+?>
