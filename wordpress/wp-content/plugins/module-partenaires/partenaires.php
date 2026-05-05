@@ -1,45 +1,55 @@
 <?php
-/*
-Plugin Name: JOSSEL - Partenaires Officiels
-Description: Module d'affichage dynamique via partenaires.csv (Lot 4).
-Author: Leny Chopis
-Version: 1.2
-*/
+/**
+ * Plugin Name: Partenaires JOSSEL
+ * Description: Affiche les partenaires de l'entreprise à partir des données CSV de l'intranet.
+ * Version: 1.0
+ * Author: Leny (Lot 4)
+ */
 
-function rendu_partenaires_jossel() {
-    // Chemin absolu vers le fichier de données géré par l'intranet[cite: 1, 2]
-    $file_path = '/var/www/html/SAE203/intranet/data/partenaires.csv';
-    $output = "<h2>Nos Partenaires</h2>";
+// Sécurité : Empêcher l'accès direct au fichier PHP
+if (!defined('ABSPATH')) exit;
 
-    if (!file_exists($file_path)) {
-        return $output . "<p>Fichier partenaires.csv introuvable dans l'intranet.</p>";
-    }
-
-    $output .= '<div class="partners-grid" style="display:flex; flex-wrap:wrap; gap:20px;">';
+function shortcode_liste_partenaires() {
+    // 1. Définition des chemins (CSV sur le serveur et URL pour les images)
+    $csv_file = ABSPATH . '../intranet/data/partenaires.csv';
+    $base_url_images = "http://172.18.203.79/intranet/"; // URL du serveur de production
     
-    // Utilisation des fonctions PHP obligatoires pour le CSV
-    if (($handle = fopen($file_path, "r")) !== FALSE) {
-        // Lecture de l'en-tête (Nom, Logo, Description)[cite: 2]
-        fgetcsv($handle, 1000, ","); 
+    $output = '<div class="row" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 20px;">';
 
-        while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-            $nom  = htmlspecialchars($data[0]);
-            $logo = htmlspecialchars($data[1]);
-            $desc = htmlspecialchars($data[2]);
+    // 2. Vérification de l'existence du fichier
+    if (file_exists($csv_file)) {
+        // 3. Ouverture du fichier via fopen (Obligatoire)
+        if (($handle = fopen($csv_file, "r")) !== FALSE) {
+            
+            // On saute la première ligne (les titres des colonnes)
+            fgetcsv($handle, 1000, ",");
 
-            $output .= "
-            <div class='partner-card' style='border:1px solid #ddd; padding:10px; width:180px; text-align:center;'>
-                <img src='{$logo}' alt='Logo {$nom}' style='max-width:100px; height:auto;'>
-                <h4>{$nom}</h4>
-                <p style='font-size:0.85em;'>{$desc}</p>
-            </div>";
+            // 4. Lecture ligne par ligne avec fgetcsv (Obligatoire)
+            // Structure CSV détectée : Nom[0], Logo[1], Description
+            while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                $nom = htmlspecialchars($data[0]);
+                $logo_path = htmlspecialchars($data[1]); // contient "img/partenaires/fichier.png"
+                $description = htmlspecialchars($data[2]);
+                $site_web = htmlspecialchars($data[3]);
+
+                // 5. Generation du HTML
+                $output .= '
+                <div class="card-partenaire" style="width: 250px; border: 1px solid #ddd; padding: 15px; text-align: center; border-radius: 8px;">
+                    <img src="' . $base_url_images . $logo_path . '" alt="Logo ' . $nom . '" style="max-height: 80px; margin-bottom: 10px;">
+                    <h4 style="margin: 10px 0;">' . $nom . '</h4>
+                    <p style="font-size: 0.9em; color: #666; height: 60px; overflow: hidden;">' . $description . '</p>
+                    <a href="' . $site_web . '" target="_blank" style="display: inline-block; background: #0073aa; color: #fff; padding: 5px 10px; text-decoration: none; border-radius: 4px; font-size: 0.8em;">Visiter le site</a>
+                </div>';
+            }
+            fclose($handle);
         }
-        fclose($handle);[cite: 2]
+    } else {
+        $output .= '<p>Erreur : Impossible de charger les données des partenaires.</p>';
     }
 
     $output .= '</div>';
     return $output;
 }
 
-// Shortcode pour Lillian (Lot 3) : [jossel_partners]
-add_shortcode('jossel_partners', 'rendu_partenaires_jossel');
+// 6. Enregistrement du shortcode
+add_shortcode('afficher_partenaires', 'shortcode_liste_partenaires');
