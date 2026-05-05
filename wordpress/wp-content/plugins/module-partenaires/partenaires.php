@@ -6,8 +6,15 @@
  * Author: Leny (Lot 4)
  */
 
+<<<<<<< HEAD
 // Sécurité : Empêcher l'accès direct au fichier PHP
 if (!defined('ABSPATH')) exit;
+=======
+function rendu_partenaires_jossel() {
+    // Chemin absolu vers le fichier de données géré par l'intranet
+    $file_path = '/var/www/html/SAE203/intranet/data/partenaires.csv';
+    $output = "<h2>Nos Partenaires</h2>";
+>>>>>>> 357adb8ea30abd721e76e4706e6429186e285945
 
 function shortcode_liste_partenaires() {
     // 1. Définition des chemins (CSV sur le serveur et URL pour les images)
@@ -43,8 +50,12 @@ function shortcode_liste_partenaires() {
             }
             fclose($handle);
         }
+<<<<<<< HEAD
     } else {
         $output .= '<p>Erreur : Impossible de charger les données des partenaires.</p>';
+=======
+        fclose($handle);
+>>>>>>> 357adb8ea30abd721e76e4706e6429186e285945
     }
 
     $output .= '</div>';
