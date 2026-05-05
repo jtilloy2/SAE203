@@ -7,7 +7,7 @@ Version: 1.2
 */
 
 function rendu_partenaires_jossel() {
-    // Chemin absolu vers le fichier de données géré par l'intranet[cite: 1, 2]
+    // Chemin absolu vers le fichier de données géré par l'intranet
     $file_path = '/var/www/html/SAE203/intranet/data/partenaires.csv';
     $output = "<h2>Nos Partenaires</h2>";
 
@@ -34,7 +34,7 @@ function rendu_partenaires_jossel() {
                 <p style='font-size:0.85em;'>{$desc}</p>
             </div>";
         }
-        fclose($handle);[cite: 2]
+        fclose($handle);
     }
 
     $output .= '</div>';
