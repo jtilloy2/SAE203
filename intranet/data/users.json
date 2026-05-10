@@ -1,14 +1,57 @@
 [
     {
-        "id": 1,
-        "email": "admin@velomat.fr",
-        "password": "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi",
+        "login": "admin",
+        "password": "$2y$10$G0m.K1Z3y5X7w9V1u2T4S6R8P0N2M4L6K8J0I2H4G6F8E0D2C4B6A",
         "role": "admin"
     },
     {
-        "id": 2,
-        "email": "employe@velomat.fr",
-        "password": "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi",
-        "role": "employe"
+        "login": "jtilloy",
+        "password": "$2y$10$G0m.K1Z3y5X7w9V1u2T4S6R8P0N2M4L6K8J0I2H4G6F8E0D2C4B6A",
+        "role": "admin"
+    },
+    {
+        "login": "jaluze",
+        "password": "$2y$10$G0m.K1Z3y5X7w9V1u2T4S6R8P0N2M4L6K8J0I2H4G6F8E0D2C4B6A",
+        "role": "admin"
+    },
+    {
+        "login": "directeur",
+        "password": "$2y$10$D0i.R2v4Z6X8w0V2u4T6S8R0P2N4M6L8K0J2I4H6G8F0E2D4C6B",
+        "role": "direction"
+    },
+    {
+        "login": "spetit",
+        "password": "$2y$10$D0i.R2v4Z6X8w0V2u4T6S8R0P2N4M6L8K0J2I4H6G8F0E2D4C6B",
+        "role": "direction"
+    },
+    {
+        "login": "manager",
+        "password": "$2y$10$M0a.N2a4G6E8r0Z2u4T6S8R0P2N4M6L8K0J2I4H6G8F0E2D4C6B",
+        "role": "manager"
+    },
+    {
+        "login": "elejoly",
+        "password": "$2y$10$M0a.N2a4G6E8r0Z2u4T6S8R0P2N4M6L8K0J2I4H6G8F0E2D4C6B",
+        "role": "manager"
+    },
+    {
+        "login": "lchopis",
+        "password": "$2y$10$M0a.N2a4G6E8r0Z2u4T6S8R0P2N4M6L8K0J2I4H6G8F0E2D4C6B",
+        "role": "manager"
+    },
+    {
+        "login": "salarie",
+        "password": "$2y$10$U0s.E2r4U6S8e2v0V2u4T6S8R0P2N4M6L8K0J2I4H6G8F0E2D4C6B",
+        "role": "salarie"
+    },
+    {
+        "login": "lauffray",
+        "password": "$2y$10$U0s.E2r4U6S8e2v0V2u4T6S8R0P2N4M6L8K0J2I4H6G8F0E2D4C6B",
+        "role": "salarie"
+    },
+    {
+        "login": "achenais",
+        "password": "$2y$10$U0s.E2r4U6S8e2v0V2u4T6S8R0P2N4M6L8K0J2I4H6G8F0E2D4C6B",
+        "role": "salarie"
     }
 ]
