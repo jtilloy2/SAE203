@@ -14,12 +14,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $login_saisi = $_POST['login'] ?? '';
     $mdp_saisi = $_POST['password'] ?? '';
 
-    // Chemin vers les données de Julien T.[cite: 7]
+    // Chemin vers les données JSON (Configuré pour ta VM)
     $chemin_json = __DIR__ . '/data/users.json';
 
     if (file_exists($chemin_json)) {
-        $contenu = file_get_contents($chemin_json); //
-        $utilisateurs = json_decode($contenu, true); //
+        $contenu = file_get_contents($chemin_json);
+        $utilisateurs = json_decode($contenu, true);
 
         foreach ($utilisateurs as $user) {
             // password_verify est crucial ici pour les mots de passe hashés
@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $erreur = "Identifiants invalides. Vérifie tes majuscules !";
     } else {
-        $erreur = "Fichier de configuration introuvable. Contactez Julien T.";
+        $erreur = "Fichier de configuration introuvable. Contactez l'administrateur.";
     }
 }
 ?>
@@ -45,8 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <title>Connexion - Entreprise JOSSEL</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css"> <!-- Le fichier d'Antonin -->
-</head>
+    <link rel="stylesheet" href="css/style.css"> </head>
 <body class="bg-light d-flex align-items-center vh-100">
     <div class="container">
         <div class="row justify-content-center">
