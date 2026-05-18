@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) exit;
 function shortcode_liste_partenaires() {
     // 1. Définition des chemins (CSV sur le serveur et URL pour les images)
     $csv_file = ABSPATH . '../intranet/data/partenaires.csv';
-    $base_url_images = "http://172.18.203.79/intranet/"; // URL du serveur de production
+    $base_url_images = "/SAE203/intranet/"; // URL du serveur de production
     
     $output = '<div class="row" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 20px;">';
 
