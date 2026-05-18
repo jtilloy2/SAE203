@@ -2,11 +2,7 @@
 // ==========================================
 // Élouan - Lot 6 : Annuaire du Personnel
 // ==========================================
-
-// 1. Sécurité : On démarre la session pour l'intranet
 session_start();
-
-// 2. Définition du chemin vers ton fichier JSON
 $fichier_json = 'data/utilisateurs.json';
 ?>
 <!DOCTYPE html>
@@ -14,14 +10,14 @@ $fichier_json = 'data/utilisateurs.json';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Annuaire du Personnel - Intranet</title>
+    <title>Annuaire du Personnel - Vélomat</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">MonEntreprise Intranet</a>
+            <a class="navbar-brand" href="#">🚴 Vélomat Intranet</a>
             <div class="navbar-nav">
                 <a class="nav-link active" href="annuaire.php">Annuaire</a>
                 <a class="nav-link" href="fichiers.php">Fichiers Partagés</a>
@@ -35,60 +31,54 @@ $fichier_json = 'data/utilisateurs.json';
             <p class="text-muted">Liste officielle des salariés de l'entreprise (12 profils minimum requis)</p>
         </div>
 
-        <div class="card shadow-sm">
+        <div class="card shadow-lg border-0 rounded-3">
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-striped table-hover align-middle mb-0">
                         <thead class="table-dark">
                             <tr>
-                                <th scope="col" class="ps-4">Photo</th>
-                                <th scope="col">Nom</th>
-                                <th scope="col">Prénom</th>
-                                <th scope="col">Poste / Fonction</th>
-                                <th scope="col" class="pe-4">Biographie</th>
+                                <th scope="col" class="ps-4 py-3">Photo</th>
+                                <th scope="col" class="py-3">Nom</th>
+                                <th scope="col" class="py-3">Prénom</th>
+                                <th scope="col" class="py-3">Poste / Fonction</th>
+                                <th scope="col" class="pe-4 py-3">Biographie</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php
-                            // 3. Vérification de l'existence du fichier JSON
                             if (file_exists($fichier_json)) {
-                                
-                                // 4. Lecture du contenu du fichier JSON
                                 $contenu_json = file_get_contents($fichier_json);
-                                
-                                // 5. Décodage du JSON en tableau associatif PHP (true)
                                 $employes = json_decode($contenu_json, true);
 
-                                // 6. On vérifie que le décodage a fonctionné et qu'on a bien un tableau
                                 if (is_array($employes)) {
-                                    
-                                    // 7. Boucle foreach pour parcourir chaque employé (Interdiction du SQL !)
                                     foreach ($employes as $emp) {
-                                        
-                                        // Sécurisation des données contre les failles XSS
-                                        // (on vérifie si la clé existe avec l'opérateur ?? pour éviter les notices PHP)
-                                        $nom       = htmlspecialchars($emp['nom'] ?? '');
-                                        $prenom    = htmlspecialchars($emp['prenom'] ?? '');
-                                        $fonction  = htmlspecialchars($emp['fonction'] ?? '');
+                                        // On récupère les infos. Si elles n'existent pas, on met un texte par défaut ('—')
+                                        $nom       = htmlspecialchars($emp['nom'] ?? '—');
+                                        $prenom    = htmlspecialchars($emp['prenom'] ?? '—');
+                                        $fonction  = htmlspecialchars($emp['fonction'] ?? 'Non défini');
+                                        $bio       = htmlspecialchars($emp['bio'] ?? 'Aucune biographie renseignée.');
                                         $photo_url = htmlspecialchars($emp['photo'] ?? '');
-                                        $bio       = htmlspecialchars($emp['bio'] ?? '');
+
+                                        // ASTUCE : Si la photo est vide, on génère un avatar avec les initiales
+                                        if (empty($photo_url)) {
+                                            $photo_url = "https://ui-avatars.com/api/?name=" . urlencode($prenom . " " . $nom) . "&background=0D8ABC&color=fff&rounded=true&size=128";
+                                        }
 
                                         echo "<tr>";
-                                        // Affichage de la photo (this-person-does-not-exist.com) formatée proprement
-                                        echo "<td class='ps-4'><img src='{$photo_url}' alt='Photo' class='rounded-circle' style='width: 50px; height: 50px; object-fit: cover;'></td>";
-                                        echo "<td class='fw-bold'>{$nom}</td>";
+                                        // Affichage de la photo avec une petite bordure stylée
+                                        echo "<td class='ps-4'><img src='{$photo_url}' alt='Photo' class='rounded-circle border border-2 border-white shadow-sm' style='width: 55px; height: 55px; object-fit: cover;'></td>";
+                                        echo "<td class='fw-bold text-uppercase'>{$nom}</td>";
                                         echo "<td>{$prenom}</td>";
-                                        echo "<td><span class='badge bg-secondary'>{$fonction}</span></td>";
-                                        echo "<td class='pe-4 text-muted' style='max-width: 300px; font-size: 0.9rem;'>{$bio}</td>";
+                                        // Affichage de la fonction dans un joli badge bleu
+                                        echo "<td><span class='badge bg-primary px-3 py-2 rounded-pill shadow-sm'>{$fonction}</span></td>";
+                                        echo "<td class='pe-4 text-muted' style='max-width: 300px; font-size: 0.9rem; font-style: italic;'>« {$bio} »</td>";
                                         echo "</tr>";
                                     }
-                                    
                                 } else {
-                                    echo "<tr><td colspan='5' class='text-center text-danger py-4'>Erreur : Le format ou la structure du fichier JSON est invalide.</td></tr>";
+                                    echo "<tr><td colspan='5' class='text-center text-danger py-4'>Erreur : Le format du fichier JSON est invalide.</td></tr>";
                                 }
                             } else {
-                                // Message d'alerte si ton fichier n'est pas trouvé au bon endroit
-                                echo "<tr><td colspan='5' class='text-center text-warning py-4'>Le fichier <code>data/utilisateurs.json</code> n'existe pas. Crée-le pour afficher les employés !</td></tr>";
+                                echo "<tr><td colspan='5' class='text-center text-warning py-4'>Le fichier JSON est introuvable.</td></tr>";
                             }
                             ?>
                         </tbody>
