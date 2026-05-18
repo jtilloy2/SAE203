@@ -1,100 +1,276 @@
 <?php
-// ==========================================
-// Élouan - Lot 6 : Annuaire du Personnel
-// ==========================================
 session_start();
-$fichier_json = 'data/utilisateurs.json';
+
+// 1. SÉCURITÉ : Vérification de la session
+if (!isset($_SESSION['user'])) {
+    header('Location: login.php');
+    exit;
+}
+
+// 2. GESTION DES PERMISSIONS
+$role = strtolower($_SESSION['user']['role'] ?? $_SESSION['user']['groupe'] ?? 'salarie');
+$nom_user_connecte = $_SESSION['user']['nom'] ?? $_SESSION['user']['login'] ?? 'Utilisateur';
+
+$is_admin = ($role === 'admin' || $role === 'administrateur');
+// Ligne de test : décommente la ligne suivante pour forcer le mode admin sur ta machine
+// $is_admin = true;
+
+$fichier_json = __DIR__ . '/data/utilisateurs.json';
+$message_succes = '';
+$message_erreur = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'modifier' && $is_admin) {
+    if (file_exists($fichier_json)) {
+        $contenu_json = file_get_contents($fichier_json);
+        $employes = json_decode($contenu_json, true);
+        
+        $id_a_modifier = intval($_POST['id_user']);
+        
+        foreach ($employes as $key => $emp) {
+            if (isset($emp['id']) && intval($emp['id']) === $id_a_modifier) {
+                // Mise à jour des champs
+                $employes[$key]['nom'] = trim($_POST['nom_complet']);
+                $employes[$key]['poste'] = trim($_POST['poste']);
+                $employes[$key]['groupe'] = trim($_POST['groupe']);
+                break;
+            }
+        }
+        
+        if (file_put_contents($fichier_json, json_encode($employes, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE))) {
+            $message_succes = "Les informations du collaborateur ont été mises à jour avec succès.";
+        } else {
+            $message_erreur = "Erreur lors de l'enregistrement dans le fichier JSON.";
+        }
+    }
+}
+
+$employes = [];
+if (file_exists($fichier_json)) {
+    $contenu_json = file_get_contents($fichier_json);
+    $data = json_decode($contenu_json, true);
+    if (is_array($data)) {
+        $employes = $data;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Annuaire du Personnel - Vélomat</title>
+    <title>Annuaire des Collaborateurs - Intranet JOSSEL</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
+    <style>
+        :root {
+            --c-fond: #FFFFFF;            
+            --c-texte: #1A1A1A;           
+            --c-structurant: #E0E0E0;     
+            --c-action: #0056b3;          
+            --c-secondaire: #4A4A4A;      
+        }
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">🚴 Vélomat Intranet</a>
-            <div class="navbar-nav">
-                <a class="nav-link active" href="annuaire.php">Annuaire</a>
-                <a class="nav-link" href="fichiers.php">Fichiers Partagés</a>
+        body {
+            background-color: var(--c-fond);
+            color: var(--c-texte);
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+
+        /* Navbar */
+        .navbar-custom { background-color: var(--c-fond); border-bottom: 1px solid var(--c-structurant); }
+        .navbar-custom .navbar-brand { color: var(--c-texte); font-weight: 700; }
+        .text-muted { color: var(--c-secondaire) !important; }
+
+        /* Boutons */
+        .btn-action { background-color: var(--c-action); color: var(--c-fond); border: none; font-weight: 500; }
+        .btn-action:hover { background-color: #004494; color: var(--c-fond); }
+        
+        .btn-structurant { border: 1px solid var(--c-structurant); color: var(--c-texte); background: transparent; }
+        .btn-structurant:hover { background-color: var(--c-structurant); }
+
+        /* Badges */
+        .badge-role { background-color: var(--c-texte); color: var(--c-fond); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; }
+        
+        /* Badges de Groupes dans le tableau */
+        .badge-groupe-admin { background-color: #dc3545; color: white; }
+        .badge-groupe-manager { background-color: #ffc107; color: black; }
+        .badge-groupe-direction { background-color: #17a2b8; color: white; }
+        .badge-groupe-salarie { background-color: #28a745; color: white; }
+
+        /* Tableau */
+        .table-container { border: 1px solid var(--c-structurant); border-radius: 6px; background-color: var(--c-fond); overflow: hidden; }
+        .table { margin-bottom: 0; }
+        .table thead th { background-color: #FAFAFA; border-bottom: 1px solid var(--c-structurant); color: var(--c-secondaire); font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; padding: 1rem; border-top: none; }
+        .table tbody td { padding: 1rem; vertical-align: middle; border-bottom: 1px solid var(--c-structurant); }
+        .table tbody tr:last-child td { border-bottom: none; }
+        .table tbody tr:hover { background-color: #FAFAFA; }
+
+        .avatar-img { width: 45px; height: 45px; object-fit: cover; border-radius: 50%; border: 1px solid var(--c-structurant); }
+    </style>
+</head>
+<body>
+    
+    <nav class="navbar navbar-expand-lg navbar-custom mb-5 py-3">
+        <div class="container d-flex justify-content-between align-items-center">
+            <span class="navbar-brand">JOSSEL <span class="fw-light text-muted">| Annuaire Collaborateurs</span></span>
+            <div class="d-flex align-items-center">
+                <span class="me-4 text-muted small">
+                    <?= htmlspecialchars($nom_user_connecte) ?> 
+                    <span class="badge badge-role ms-2"><?= htmlspecialchars($role) ?></span>
+                </span>
+                <a href="index.php" class="btn btn-structurant btn-sm me-2">Accueil</a>
+                <a href="fichiers.php" class="btn btn-structurant btn-sm me-2">Fichiers</a>
+                <a href="logout.php" class="btn btn-action btn-sm">Déconnexion</a>
             </div>
         </div>
     </nav>
 
-    <div class="container my-5">
-        <div class="text-center mb-5">
-            <h1 class="text-primary fw-bold">Annuaire des Collaborateurs</h1>
-            <p class="text-muted">Liste officielle des salariés de l'entreprise (12 profils minimum requis)</p>
+    <div class="container pb-5">
+        
+        <?php if ($message_succes): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <?= htmlspecialchars($message_succes) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+        <?php if ($message_erreur): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <?= htmlspecialchars($message_erreur) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
+        <div class="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom">
+            <div>
+                <h2 class="fw-bold m-0">Équipe & Collaborateurs</h2>
+                <p class="text-muted small m-0 mt-1">Liste officielle du personnel de l'entreprise (Base JSON)</p>
+            </div>
+            <?php if ($is_admin): ?>
+                <span class="badge bg-danger px-3 py-2 rounded-pill">Mode Admin Actif</span>
+            <?php endif; ?>
         </div>
 
-        <div class="card shadow-lg border-0 rounded-3">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover align-middle mb-0">
-                        <thead class="table-dark">
-                            <tr>
-                                <th scope="col" class="ps-4 py-3">Photo</th>
-                                <th scope="col" class="py-3">Nom</th>
-                                <th scope="col" class="py-3">Prénom</th>
-                                <th scope="col" class="py-3">Poste</th>
-                                <th scope="col" class="pe-4 py-3">Groupe (Droits)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            if (file_exists($fichier_json)) {
-                                $contenu_json = file_get_contents($fichier_json);
-                                $employes = json_decode($contenu_json, true);
+        <div class="table-container shadow-sm">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Photo</th>
+                        <th>Nom Complet</th>
+                        <th>Poste / Fonction</th>
+                        <th>Groupe d'accès</th>
+                        <?php if ($is_admin): ?><th class="text-end pe-4">Actions</th><?php endif; ?>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($employes)): ?>
+                        <?php foreach ($employes as $emp): 
+                            $id = htmlspecialchars($emp['id'] ?? 0);
+                            $nom_complet = htmlspecialchars($emp['nom'] ?? 'Inconnu');
+                            $poste = htmlspecialchars($emp['poste'] ?? 'Non défini');
+                            $groupe = htmlspecialchars(strtolower($emp['groupe'] ?? 'salarie'));
+                            $photo_url = htmlspecialchars($emp['photo'] ?? '');
 
-                                if (is_array($employes)) {
-                                    foreach ($employes as $emp) {
-                                        // 1. Séparation du nom complet en Prénom et Nom
-                                        $nom_complet = $emp['nom'] ?? '';
-                                        $parts = explode(' ', $nom_complet, 2); // Coupe à la première espace
-                                        $prenom = htmlspecialchars($parts[0] ?? '—');
-                                        $nom    = htmlspecialchars($parts[1] ?? '');
+                            $avatar_secours = "https://ui-avatars.com/api/?name=" . urlencode($nom_complet) . "&background=E0E0E0&color=1A1A1A&rounded=true";
 
-                                        // 2. Récupération des autres données
-                                        $poste     = htmlspecialchars($emp['poste'] ?? 'Non défini');
-                                        $groupe    = htmlspecialchars($emp['groupe'] ?? '—');
-                                        $photo_url = htmlspecialchars($emp['photo'] ?? '');
-
-                                        // 3. Avatar de secours généré via l'API si l'image locale est introuvable
-                                        $avatar_secours = "https://ui-avatars.com/api/?name=" . urlencode($prenom . " " . $nom) . "&background=random&color=fff&rounded=true&size=128";
-
-                                        // 4. Attribution des couleurs selon le groupe
-                                        $badge_color = 'bg-secondary';
-                                        if ($groupe == 'admin') $badge_color = 'bg-danger';
-                                        if ($groupe == 'manager') $badge_color = 'bg-warning text-dark';
-                                        if ($groupe == 'direction') $badge_color = 'bg-info text-dark';
-                                        if ($groupe == 'salarie') $badge_color = 'bg-success';
-
-                                        echo "<tr>";
-                                        // L'attribut onerror permet de remplacer l'image si elle n'existe pas dans ton dossier
-                                        echo "<td class='ps-4'><img src='{$photo_url}' onerror=\"this.onerror=null;this.src='{$avatar_secours}';\" alt='Photo' class='rounded-circle border border-2 border-white shadow-sm' style='width: 55px; height: 55px; object-fit: cover;'></td>";
-                                        echo "<td class='fw-bold text-uppercase'>{$nom}</td>";
-                                        echo "<td>{$prenom}</td>";
-                                        echo "<td><span class='badge bg-primary px-3 py-2 rounded-pill shadow-sm'>{$poste}</span></td>";
-                                        echo "<td class='pe-4'><span class='badge {$badge_color} px-3 py-2 rounded-pill shadow-sm text-uppercase'>{$groupe}</span></td>";
-                                        echo "</tr>";
-                                    }
-                                } else {
-                                    echo "<tr><td colspan='5' class='text-center text-danger py-4'>Erreur : Le format du fichier JSON est invalide.</td></tr>";
-                                }
-                            } else {
-                                echo "<tr><td colspan='5' class='text-center text-warning py-4'>Le fichier JSON est introuvable.</td></tr>";
+                            $badge_class = 'badge-groupe-' . $groupe;
+                            if (!in_array($groupe, ['admin', 'manager', 'direction', 'salarie'])) {
+                                $badge_class = 'bg-secondary';
                             }
-                            ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                        ?>
+                        <tr>
+                            <td class="ps-4">
+                                <img src="<?= $photo_url ?>" onerror="this.onerror=null;this.src='<?= $avatar_secours ?>';" alt="Photo" class="avatar-img">
+                            </td>
+                            <td><strong style="color: var(--c-texte);"><?= $nom_complet ?></strong></td>
+                            <td><span class="text-muted"><?= $poste ?></span></td>
+                            <td>
+                                <span class="badge <?= $badge_class ?> px-2 py-1 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                                    <?= $groupe ?>
+                                </span>
+                            </td>
+                            
+                            <?php if ($is_admin): ?>
+                            <td class="text-end pe-4 text-nowrap">
+                                <button class="btn btn-structurant btn-sm edit-btn" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#editModal"
+                                        data-id="<?= $id ?>"
+                                        data-nom="<?= $nom_complet ?>"
+                                        data-poste="<?= $poste ?>"
+                                        data-groupe="<?= $groupe ?>">
+                                    Éditer
+                                </button>
+                            </td>
+                            <?php endif; ?>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr><td colspan="5" class="text-center p-5 text-muted">Aucun collaborateur trouvé dans le fichier JSON.</td></tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
         </div>
     </div>
+
+    <?php if ($is_admin): ?>
+    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form method="POST" action="annuaire.php">
+              <input type="hidden" name="action" value="modifier">
+              <input type="hidden" name="id_user" id="modal_id_user">
+              
+              <div class="modal-header">
+                <h5 class="modal-title fw-bold">Modifier le collaborateur</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+              </div>
+              <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold text-uppercase">Nom Complet</label>
+                    <input type="text" name="nom_complet" id="modal_nom" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold text-uppercase">Poste / Fonction</label>
+                    <input type="text" name="poste" id="modal_poste" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold text-uppercase">Groupe d'accès</label>
+                    <select class="form-select" name="groupe" id="modal_groupe" required>
+                        <option value="salarie">Salarié</option>
+                        <option value="manager">Manager</option>
+                        <option value="direction">Direction</option>
+                        <option value="admin">Administrateur</option>
+                    </select>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-structurant" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" class="btn btn-action">Enregistrer</button>
+              </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const editButtons = document.querySelectorAll('.edit-btn');
+            editButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    document.getElementById('modal_id_user').value = this.getAttribute('data-id');
+                    document.getElementById('modal_nom').value = this.getAttribute('data-nom');
+                    document.getElementById('modal_poste').value = this.getAttribute('data-poste');
+                    const groupe = this.getAttribute('data-groupe').toLowerCase();
+                    const select = document.getElementById('modal_groupe');
+                    for (let i = 0; i < select.options.length; i++) {
+                        if (select.options[i].value === groupe) {
+                            select.selectedIndex = i;
+                            break;
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+    <?php endif; ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
