@@ -1,0 +1,52 @@
+[
+    {
+        "login": "admin",
+        "password": "$2y$10$abcdefghijklmnopqrstuuO50ucO38PXw7n.hwacPsbjlutv2H/QO",
+        "role": "admin"
+    },
+    {
+        "login": "jtilloy",
+        "password": "$2y$10$abcdefghijklmnopqrstuuO50ucO38PXw7n.hwacPsbjlutv2H/QO",
+        "role": "admin"
+    },
+    {
+        "login": "elouan",
+        "password": "$2y$10$abcdefghijklmnopqrstuuO50ucO38PXw7n.hwacPsbjlutv2H/QO",
+        "role": "admin"
+    },
+    {
+        "login": "leny",
+        "password": "$2y$10$abcdefghijklmnopqrstuuO50ucO38PXw7n.hwacPsbjlutv2H/QO",
+        "role": "admin"
+    },
+    {
+        "login": "lilian",
+        "password": "$2y$10$abcdefghijklmnopqrstuuO50ucO38PXw7n.hwacPsbjlutv2H/QO",
+        "role": "admin"
+    },
+    {
+        "login": "antonin",
+        "password": "$2y$10$abcdefghijklmnopqrstuuO50ucO38PXw7n.hwacPsbjlutv2H/QO",
+        "role": "admin"
+    },
+    {
+        "login": "jaluz",
+        "password": "$2y$10$abcdefghijklmnopqrstuuO50ucO38PXw7n.hwacPsbjlutv2H/QO",
+        "role": "admin"
+    },
+    {
+        "login": "directeur",
+        "password": "$2y$10$abcdefghijklmnopqrstuuC7w2tidIOtwV1S4jOSLW7PHYhSCoOGS",
+        "role": "direction"
+    },
+    {
+        "login": "manager",
+        "password": "$2y$10$abcdefghijklmnopqrstuueIX3dOwsRpsGdsEAFGiUZRZqZEg6x9q",
+        "role": "manager"
+    },
+    {
+        "login": "salarie",
+        "password": "$2y$10$abcdefghijklmnopqrstuubZJPbs74djXQ2mHngGnbsfOZvrtAHkK",
+        "role": "salarie"
+    }
+]
