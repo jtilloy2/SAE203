@@ -14,7 +14,7 @@ $peut_modifier = in_array($role, ['admin', 'direction', 'manager']);
 $peut_supprimer = in_array($role, ['admin', 'direction']);
 $afficher_actions = true; 
 
-// 3. LOGIQUE CSV
+// 3. LOGIQUE CSV : LECTURE
 $fichier_csv = __DIR__ . '/data/clients.csv';
 $clients = [];
 if (file_exists($fichier_csv) && ($handle = fopen($fichier_csv, "r")) !== FALSE) {
@@ -24,7 +24,7 @@ if (file_exists($fichier_csv) && ($handle = fopen($fichier_csv, "r")) !== FALSE)
     fclose($handle);
 }
 
-// ACTIONS GET
+// ACTIONS GET (TÉLÉCHARGEMENT ET SUPPRESSION)
 if (isset($_GET['action']) && isset($_GET['id'])) {
     $id = (int)$_GET['id'];
     
@@ -48,14 +48,39 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     }
 }
 
-// ACTION POST
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add' && $peut_ajouter) {
-    $nouveau_client = [$_POST['nom'], $_POST['email'], $_POST['telephone'], $_POST['ville']];
-    $handle = fopen($fichier_csv, 'a');
-    fputcsv($handle, $nouveau_client, ",");
-    fclose($handle);
-    header('Location: client.php?msg=added');
-    exit;
+// ACTIONS POST (AJOUT ET MODIFICATION)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    
+    // Si c'est un ajout
+    if ($_POST['action'] === 'add' && $peut_ajouter) {
+        $nouveau_client = [$_POST['nom'], $_POST['email'], $_POST['telephone'], $_POST['ville']];
+        $handle = fopen($fichier_csv, 'a');
+        fputcsv($handle, $nouveau_client, ",");
+        fclose($handle);
+        header('Location: client.php?msg=added');
+        exit;
+    }
+
+    // Si c'est une modification
+    if ($_POST['action'] === 'edit' && $peut_modifier && isset($_POST['id'])) {
+        $id = (int)$_POST['id'];
+        
+        // On vérifie que le client existe bien
+        if (isset($clients[$id])) {
+            // On remplace la ligne existante par les nouvelles données
+            $clients[$id] = [$_POST['nom'], $_POST['email'], $_POST['telephone'], $_POST['ville']];
+            
+            // On réécrit tout le fichier
+            $handle = fopen($fichier_csv, 'w');
+            foreach ($clients as $ligne) {
+                fputcsv($handle, $ligne, ",");
+            }
+            fclose($handle);
+            
+            header('Location: client.php?msg=edited');
+            exit;
+        }
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -75,15 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         .btn-danger-custom { border: 1px solid var(--c-structurant); color: var(--c-danger); background: transparent; }
         .btn-danger-custom:hover { background-color: var(--c-danger); color: var(--c-fond); }
         
-        /* Ajustement du badge noir comme sur ta capture */
-        .badge-role { 
-            background-color: var(--c-texte); 
-            color: var(--c-fond); 
-            font-size: 0.75rem; 
-            text-transform: uppercase; 
-            padding: 0.4em 0.6em;
-            border-radius: 4px;
-        }
+        .badge-role { background-color: var(--c-texte); color: var(--c-fond); font-size: 0.75rem; text-transform: uppercase; padding: 0.4em 0.6em; border-radius: 4px;}
         
         .table-container { border: 1px solid var(--c-structurant); border-radius: 6px; }
         .table thead th { background-color: #FAFAFA; border-bottom: 1px solid var(--c-structurant); color: var(--c-secondaire); font-size: 0.85rem; padding: 1rem; }
@@ -96,21 +113,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         <div class="container d-flex justify-content-between align-items-center">
             <span class="navbar-brand fw-bold">JOSSEL <span class="fw-light text-muted">| Annuaire Clients</span></span>
             <div class="d-flex align-items-center">
-                
                 <span class="me-4" style="color: var(--c-secondaire);">
                     <?= htmlspecialchars($_SESSION['user']['login'] ?? 'utilisateur'); ?> 
                     <span class="badge badge-role ms-1"><?= htmlspecialchars($_SESSION['user']['role'] ?? 'salarie'); ?></span>
                 </span>
-                
                 <a href="../wordpress" class="btn btn-structurant btn-sm me-2" target="_blank">Voir le site</a>
                 <a href="index.php" class="btn btn-structurant btn-sm me-2">Accueil</a>
                 <a href="logout.php" class="btn btn-action btn-sm">Déconnexion</a>
-                
             </div>
         </div>
     </nav>
 
     <div class="container pb-5">
+        
+        <?php if (isset($_GET['msg'])): ?>
+            <?php if ($_GET['msg'] === 'added'): ?>
+                <div class="alert alert-success">Le client a été ajouté avec succès.</div>
+            <?php elseif ($_GET['msg'] === 'edited'): ?>
+                <div class="alert alert-success">Les informations du client ont été mises à jour.</div>
+            <?php elseif ($_GET['msg'] === 'deleted'): ?>
+                <div class="alert alert-danger">Le client a été supprimé.</div>
+            <?php endif; ?>
+        <?php endif; ?>
+
         <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
             <h2 class="fw-bold m-0">Annuaire des Clients</h2>
             <?php if ($peut_ajouter): ?>
@@ -137,10 +162,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                 echo "<tr>";
                                 echo "<td><strong>{$nom}</strong></td><td><a href='mailto:{$email}'>{$email}</a></td><td>{$tel}</td><td>{$ville}</td>";
                                 echo "<td class='text-end text-nowrap'>";
+                                
+                                // Bouton Fiche
                                 echo "<a href='?action=download&id={$id}' class='btn btn-structurant btn-sm me-1'>Fiche</a>";
-                                if ($peut_modifier) { echo "<button class='btn btn-structurant btn-sm me-1' disabled>Éditer</button>"; }
-                                if ($peut_supprimer) { echo "<a href='?action=delete&id={$id}' class='btn btn-danger-custom btn-sm'>Supprimer</a>"; }
+                                
+                                // Bouton Éditer (qui ouvre le modal correspondant)
+                                if ($peut_modifier) { 
+                                    echo "<button class='btn btn-structurant btn-sm me-1' data-bs-toggle='modal' data-bs-target='#editModal{$id}'>Éditer</button>"; 
+                                }
+                                
+                                // Bouton Supprimer
+                                if ($peut_supprimer) { 
+                                    echo "<a href='?action=delete&id={$id}' class='btn btn-danger-custom btn-sm' onclick='return confirm(\"Supprimer ce client ?\");'>Supprimer</a>"; 
+                                }
+                                
                                 echo "</td></tr>";
+                                
+                                // --- MODAL DE MODIFICATION POUR CHAQUE CLIENT ---
+                                if ($peut_modifier) {
+                                    echo "
+                                    <div class='modal fade' id='editModal{$id}' tabindex='-1'>
+                                      <div class='modal-dialog'>
+                                        <div class='modal-content text-start'>
+                                          <form method='POST' action='client.php'>
+                                              <input type='hidden' name='action' value='edit'>
+                                              <input type='hidden' name='id' value='{$id}'>
+                                              <div class='modal-header'>
+                                                <h5 class='modal-title'>Modifier le Client</h5>
+                                                <button type='button' class='btn-close' data-bs-dismiss='modal'></button>
+                                              </div>
+                                              <div class='modal-body'>
+                                                <label class='form-label small text-muted'>Nom complet</label>
+                                                <input type='text' name='nom' class='form-control mb-3' value='{$nom}' required>
+                                                
+                                                <label class='form-label small text-muted'>Email</label>
+                                                <input type='email' name='email' class='form-control mb-3' value='{$email}' required>
+                                                
+                                                <label class='form-label small text-muted'>Téléphone</label>
+                                                <input type='text' name='telephone' class='form-control mb-3' value='{$tel}' required>
+                                                
+                                                <label class='form-label small text-muted'>Ville</label>
+                                                <input type='text' name='ville' class='form-control' value='{$ville}' required>
+                                              </div>
+                                              <div class='modal-footer'>
+                                                <button type='button' class='btn btn-structurant' data-bs-dismiss='modal'>Annuler</button>
+                                                <button type='submit' class='btn btn-action'>Enregistrer</button>
+                                              </div>
+                                          </form>
+                                        </div>
+                                      </div>
+                                    </div>";
+                                }
                             }
                         }
                     } else { echo "<tr><td colspan='5' class='text-center p-5'>Aucun client.</td></tr>"; }
@@ -153,10 +225,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <?php if ($peut_ajouter): ?>
     <div class="modal fade" id="addModal" tabindex="-1">
       <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content text-start">
           <form method="POST" action="client.php">
               <input type="hidden" name="action" value="add">
-              <div class="modal-header"><h5 class="modal-title">Nouveau Client</h5></div>
+              <div class="modal-header">
+                  <h5 class="modal-title">Nouveau Client</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
               <div class="modal-body">
                 <input type="text" name="nom" class="form-control mb-3" placeholder="Nom complet" required>
                 <input type="email" name="email" class="form-control mb-3" placeholder="Email" required>
@@ -164,6 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <input type="text" name="ville" class="form-control" placeholder="Ville" required>
               </div>
               <div class="modal-footer">
+                <button type="button" class="btn btn-structurant" data-bs-dismiss="modal">Annuler</button>
                 <button type="submit" class="btn btn-action">Enregistrer</button>
               </div>
           </form>
