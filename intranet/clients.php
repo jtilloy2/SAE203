@@ -69,9 +69,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         body { background-color: var(--c-fond); color: var(--c-texte); font-family: system-ui, sans-serif; }
         .navbar-custom { border-bottom: 1px solid var(--c-structurant); }
         .btn-action { background-color: var(--c-action); color: var(--c-fond); border: none; font-weight: 500; }
-        .btn-structurant { border: 1px solid var(--c-structurant); color: var(--c-texte); background: transparent; }
+        .btn-action:hover { background-color: #004494; color: var(--c-fond); }
+        .btn-structurant { border: 1px solid var(--c-structurant); color: var(--c-texte); background: transparent; transition: 0.2s; }
+        .btn-structurant:hover { background-color: #f8f9fa; }
         .btn-danger-custom { border: 1px solid var(--c-structurant); color: var(--c-danger); background: transparent; }
-        .badge-role { background-color: var(--c-texte); color: var(--c-fond); font-size: 0.75rem; }
+        .btn-danger-custom:hover { background-color: var(--c-danger); color: var(--c-fond); }
+        
+        /* Ajustement du badge noir comme sur ta capture */
+        .badge-role { 
+            background-color: var(--c-texte); 
+            color: var(--c-fond); 
+            font-size: 0.75rem; 
+            text-transform: uppercase; 
+            padding: 0.4em 0.6em;
+            border-radius: 4px;
+        }
+        
         .table-container { border: 1px solid var(--c-structurant); border-radius: 6px; }
         .table thead th { background-color: #FAFAFA; border-bottom: 1px solid var(--c-structurant); color: var(--c-secondaire); font-size: 0.85rem; padding: 1rem; }
         .table tbody td { padding: 1rem; vertical-align: middle; border-bottom: 1px solid var(--c-structurant); }
@@ -83,12 +96,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         <div class="container d-flex justify-content-between align-items-center">
             <span class="navbar-brand fw-bold">JOSSEL <span class="fw-light text-muted">| Annuaire Clients</span></span>
             <div class="d-flex align-items-center">
-                <span class="me-4 text-muted small">
-                    <?= htmlspecialchars($_SESSION['user']['nom']); ?> 
-                    <span class="badge badge-role ms-2"><?= htmlspecialchars($_SESSION['user']['role']); ?></span>
+                
+                <span class="me-4" style="color: var(--c-secondaire);">
+                    <?= htmlspecialchars($_SESSION['user']['login'] ?? 'utilisateur'); ?> 
+                    <span class="badge badge-role ms-1"><?= htmlspecialchars($_SESSION['user']['role'] ?? 'salarie'); ?></span>
                 </span>
+                
+                <a href="../wordpress" class="btn btn-structurant btn-sm me-2" target="_blank">Voir le site</a>
                 <a href="index.php" class="btn btn-structurant btn-sm me-2">Accueil</a>
                 <a href="logout.php" class="btn btn-action btn-sm">Déconnexion</a>
+                
             </div>
         </div>
     </nav>
