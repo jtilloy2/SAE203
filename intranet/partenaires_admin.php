@@ -1,19 +1,18 @@
 <?php
 session_start();
 
-// Protection : Accès réservé. Si pas de session, retour au login
+// Protection : si pas de session, retour au login
 if (!isset($_SESSION['user'])) {
     header('Location: login.php');
     exit;
 }
 
-// Vérification du rôle : Seul l'Admin (ou Direction/Manager selon vos specs) doit être ici
 $role = isset($_SESSION['user']['groupe']) ? $_SESSION['user']['groupe'] : 'Salarié';
 $login = isset($_SESSION['user']['login']) ? $_SESSION['user']['login'] : 'Utilisateur';
 
-// Sécurité supplémentaire : si un simple salarié tente de forcer l'URL
-if (strtolower($role) !== 'admin' && strtolower($role) !== 'administrateur') {
-    // Redirection vers la page publique ou affichage d'une erreur propre
+// SÉCURITÉ STRICTE : Seuls l'admin et la direction entrent ici
+$role_verif = strtolower($role);
+if ($role_verif !== 'admin' && $role_verif !== 'administrateur' && $role_verif !== 'direction') {
     header('Location: partenaires.php');
     exit;
 }
@@ -21,7 +20,7 @@ if (strtolower($role) !== 'admin' && strtolower($role) !== 'administrateur') {
 $chemin_csv = __DIR__ . '/data/partenaires.csv';
 $partenaires = [];
 
-// Lecture du fichier CSV (Zéro SQL respecté)
+// Lecture du fichier CSV
 if (file_exists($chemin_csv)) {
     if (($handle = fopen($chemin_csv, "r")) !== FALSE) {
         fgetcsv($handle, 1000, ","); // Saut de l'entête
@@ -46,23 +45,22 @@ if (file_exists($chemin_csv)) {
     <title>Console Admin - Partenaires JOSSEL</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* INTÉGRATION DE LA CHARTE GRAPHIQUE SOBRE (Lot 2 - Antonin) */
+        /* CHARTE GRAPHIQUE SOBRE (Lot 2) */
         :root {
-            --c-fond: #FFFFFF;            /* Blanc Pur */
-            --c-texte: #1A1A1A;           /* Noir Intense */
-            --c-structurant: #E0E0E0;     /* Gris Clair */
-            --c-action: #0056b3;          /* Accent / Bleu Tech */
-            --c-secondaire: #4A4A4A;      /* Gris Anthracite */
-            --c-danger: #dc3545;          /* Rouge Alerte */
+            --c-fond: #FFFFFF;
+            --c-texte: #1A1A1A;
+            --c-structurant: #E0E0E0;
+            --c-action: #0056b3;
+            --c-secondaire: #4A4A4A;
+            --c-danger: #dc3545;
         }
 
         body {
             background-color: var(--c-fond);
             color: var(--c-texte);
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+            font-family: system-ui, -apple-system, sans-serif;
         }
 
-        /* Navbar épurée */
         .navbar-custom {
             background-color: var(--c-fond);
             border-bottom: 1px solid var(--c-structurant);
@@ -72,11 +70,6 @@ if (file_exists($chemin_csv)) {
             font-weight: 700;
         }
 
-        /* Titres & Textes */
-        h2 { color: var(--c-texte); letter-spacing: -0.5px; }
-        .text-muted { color: var(--c-secondaire) !important; }
-
-        /* Cartes Style Haut de Gamme / Minimaliste */
         .partner-card {
             border: 1px solid var(--c-structurant);
             background-color: var(--c-fond);
@@ -88,7 +81,6 @@ if (file_exists($chemin_csv)) {
             box-shadow: 0 10px 20px rgba(0,0,0,0.03);
         }
 
-        /* Zone Logo */
         .card-img-container {
             height: 140px;
             padding: 1.2rem;
@@ -105,37 +97,27 @@ if (file_exists($chemin_csv)) {
             object-fit: contain;
         }
 
-        /* Boutons d'Action Admin */
         .btn-action {
             background-color: var(--c-action);
             color: var(--c-fond);
             border: none;
             font-weight: 500;
         }
-        .btn-action:hover {
-            background-color: #004494;
-            color: var(--c-fond);
-        }
+        .btn-action:hover { background-color: #004494; color: var(--c-fond); }
         
         .btn-structurant {
             border: 1px solid var(--c-structurant);
             color: var(--c-texte);
             background: transparent;
         }
-        .btn-structurant:hover {
-            background-color: var(--c-structurant);
-        }
+        .btn-structurant:hover { background-color: var(--c-structurant); }
 
         .btn-danger-custom {
             border: 1px solid var(--c-structurant);
             color: var(--c-danger);
             background: transparent;
         }
-        .btn-danger-custom:hover {
-            background-color: var(--c-danger);
-            color: var(--c-fond);
-            border-color: var(--c-danger);
-        }
+        .btn-danger-custom:hover { background-color: var(--c-danger); color: var(--c-fond); border-color: var(--c-danger); }
 
         .badge-admin {
             background-color: var(--c-texte);
@@ -157,6 +139,7 @@ if (file_exists($chemin_csv)) {
                     <?= htmlspecialchars($login) ?> 
                     <span class="badge badge-admin ms-2"><?= htmlspecialchars($role) ?></span>
                 </span>
+                <a href="partenaires.php" class="btn btn-structurant btn-sm me-2">Voir le site</a>
                 <a href="index.php" class="btn btn-structurant btn-sm me-2">Accueil</a>
                 <a href="logout.php" class="btn btn-action btn-sm">Déconnexion</a>
             </div>
@@ -164,11 +147,10 @@ if (file_exists($chemin_csv)) {
     </nav>
 
     <div class="container pb-5">
-        
         <div class="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom">
             <div>
                 <h2 class="fw-bold m-0">Gestion des Partenaires</h2>
-                <p class="text-muted small m-0 mt-1">Espace de configuration des liaisons et annuaires partenaires (Format CSV)</p>
+                <p class="text-muted small m-0 mt-1">Espace de configuration (Format CSV)</p>
             </div>
             <button class="btn btn-action btn-sm px-3">+ Ajouter un partenaire</button>
         </div>
@@ -181,13 +163,11 @@ if (file_exists($chemin_csv)) {
                             <div class="card-img-container">
                                 <img src="<?= htmlspecialchars($p['logo']) ?>" alt="Logo <?= htmlspecialchars($p['nom']) ?>">
                             </div>
-                            
                             <div class="card-body d-flex flex-column p-4">
                                 <h5 class="card-title fw-bold mb-2"><?= htmlspecialchars($p['nom']) ?></h5>
                                 <p class="card-text small text-muted flex-grow-1 mb-4">
                                     <?= htmlspecialchars($p['description']) ?>
                                 </p>
-                                
                                 <div class="row g-2 pt-3 border-top mt-auto">
                                     <div class="col-6">
                                         <button class="btn btn-structurant btn-sm w-100">Modifier</button>
@@ -203,7 +183,7 @@ if (file_exists($chemin_csv)) {
             </div>
         <?php else: ?>
             <div class="alert alert-light border text-center p-5">
-                <p class="mb-0 text-muted">Aucun partenaire enregistré dans le fichier CSV.</p>
+                <p class="mb-0 text-muted">Aucun partenaire enregistré.</p>
             </div>
         <?php endif; ?>
     </div>
