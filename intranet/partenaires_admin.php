@@ -240,4 +240,75 @@ if (isset($_GET['action']) && $_GET['action'] === 'modifier' && isset($_GET['id'
             <button class="btn btn-action btn-sm px-3" data-bs-toggle="modal" data-bs-target="#modalAjout">+ Ajouter un partenaire</button>
         </div>
 
-        <?php if (!empty($partenaires)):
+        <?php if (!empty($partenaires)): ?>
+            <div class="row row-cols-1 row-cols-md-3 g-4 justify-content-center">
+                <?php foreach ($partenaires as $p): ?>
+                    <div class="col">
+                        <div class="card h-100 partner-card">
+                            <div class="card-img-container">
+                                <img src="<?= htmlspecialchars($p['logo']) ?>" alt="Logo <?= htmlspecialchars($p['nom']) ?>">
+                            </div>
+                            <div class="card-body d-flex flex-column p-4">
+                                <h5 class="card-title fw-bold mb-2"><?= htmlspecialchars($p['nom']) ?></h5>
+                                <p class="card-text small text-muted flex-grow-1 mb-4">
+                                    <?= htmlspecialchars($p['description']) ?>
+                                </p>
+                                <div class="row g-2 pt-3 border-top mt-auto">
+                                    <div class="col-6">
+                                        <a href="partenaires_admin.php?action=modifier&id=<?= $p['id'] ?>" class="btn btn-structurant btn-sm w-100">Modifier</a>
+                                    </div>
+                                    <div class="col-6">
+                                        <a href="partenaires_admin.php?action=supprimer&id=<?= $p['id'] ?>" class="btn btn-danger-custom btn-sm w-100" onclick="return confirm('Supprimer ce partenaire ?')">Supprimer</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php else: ?>
+            <div class="alert alert-light border text-center p-5">
+                <p class="mb-0 text-muted">Aucun partenaire enregistré.</p>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <div class="modal fade" id="modalAjout" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold">Nouveau Partenaire</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="partenaires_admin.php">
+                    <input type="hidden" name="action" value="ajouter">
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">Nom de l'entreprise</label>
+                            <input type="text" name="nom" class="form-control" required placeholder="ex: TelecomPro">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">Lien URL du logo</label>
+                            <input type="url" name="logo" class="form-control" required placeholder="https://site.com/logo.png">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">Lien vers le site web</label>
+                            <input type="url" name="site" class="form-control" required placeholder="https://site.com">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">Description de l'activité</label>
+                            <textarea name="description" class="form-control" rows="3" required placeholder="Description courte..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top bg-light">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-action btn-sm px-4">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
