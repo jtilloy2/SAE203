@@ -20,7 +20,8 @@ $fichier_csv = __DIR__ . '/data/clients.csv';
 // Lecture de tout le CSV dans un tableau en mémoire
 $clients = [];
 if (file_exists($fichier_csv) && ($handle = fopen($fichier_csv, "r")) !== FALSE) {
-    while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+    // Utilisation du point-virgule (;) comme séparateur standard Excel/France
+    while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
         $clients[] = $data;
     }
     fclose($handle);
@@ -32,11 +33,11 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     
     // Action : Télécharger la fiche client (Exigence Cahier des charges)
     if ($_GET['action'] === 'download' && isset($clients[$id])) {
-        $c = $clients[$id];
+        $c = array_pad($clients[$id], 5, '');
         $contenu = "FICHE CLIENT - JOSSEL\n--------------------\n";
         $contenu .= "Nom : " . $c[0] . "\nEmail : " . $c[1] . "\nTéléphone : " . $c[2] . "\nAdresse : " . $c[3] . "\nVille : " . $c[4];
         
-        header('Content-Type: text/plain');
+        header('Content-Type: text/plain; charset=utf-8');
         header('Content-Disposition: attachment; filename="fiche_client_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $c[0]) . '.txt"');
         echo $contenu;
         exit;
@@ -47,10 +48,10 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         unset($clients[$id]); // On supprime la ligne
         $clients = array_values($clients); // On réindexe le tableau proprement
         
-        // On réécrit tout le fichier
+        // On réécrit tout le fichier avec le séparateur ;
         $handle = fopen($fichier_csv, 'w');
         foreach ($clients as $ligne) {
-            fputcsv($handle, $ligne);
+            fputcsv($handle, $ligne, ";");
         }
         fclose($handle);
         header('Location: client.php?msg=deleted');
@@ -68,8 +69,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $_POST['ville']
     ];
     
+    // Écriture à la fin du fichier avec le séparateur ;
     $handle = fopen($fichier_csv, 'a');
-    fputcsv($handle, $nouveau_client);
+    fputcsv($handle, $nouveau_client, ";");
     fclose($handle);
     
     header('Location: client.php?msg=added');
@@ -175,10 +177,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 </thead>
                 <tbody>
                     <?php
-                    if (!empty($clients)) {
+                    // On vérifie si on a des clients au-delà de la ligne d'en-tête
+                    if (count($clients) > 1) {
                         foreach ($clients as $id => $data) {
                             if ($id === 0) continue; // On ignore la ligne d'en-tête du CSV
-                            if (count($data) >= 5) {
+                            
+                            // Sécurité : évite les "Undefined offset" si une colonne manque dans le CSV
+                            $data = array_pad($data, 5, '');
+                            
+                            // On n'affiche la ligne que si elle contient au moins un nom
+                            if (!empty(trim($data[0]))) {
                                 echo "<tr>";
                                 echo "<td><strong style='color: var(--c-texte);'>" . htmlspecialchars($data[0]) . "</strong></td>";
                                 echo "<td><a href='mailto:" . htmlspecialchars($data[1]) . "' class='email-link'>" . htmlspecialchars($data[1]) . "</a></td>";
@@ -187,7 +195,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                 echo "<td><span class='text-muted'>" . htmlspecialchars($data[4]) . "</span></td>";
                                 
                                 echo "<td class='text-end'>";
-                                // Tout le monde peut télécharger la fiche[cite: 1, 2]
+                                // Tout le monde peut télécharger la fiche
                                 echo "<a href='?action=download&id={$id}' class='btn btn-structurant btn-sm me-1'>Fiche</a>";
                                 
                                 if ($peut_modifier) {
@@ -201,7 +209,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             }
                         }
                     } else {
-                        echo "<tr><td colspan='6' class='text-center p-5 text-muted'>Fichier clients.csv introuvable ou vide.</td></tr>";
+                        echo "<tr><td colspan='6' class='text-center p-5 text-muted'>Aucun client trouvé dans le fichier data/clients.csv ou fichier vide.</td></tr>";
                     }
                     ?>
                 </tbody>
@@ -209,7 +217,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         </div>
     </div>
 
-    <!-- Modal d'ajout de client (Bootstrap) -->
     <?php if ($peut_ajouter): ?>
     <div class="modal fade" id="addClientModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog">
