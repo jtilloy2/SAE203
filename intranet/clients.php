@@ -20,7 +20,7 @@ $fichier_csv = __DIR__ . '/data/clients.csv';
 // Lecture de tout le CSV dans un tableau en mémoire
 $clients = [];
 if (file_exists($fichier_csv) && ($handle = fopen($fichier_csv, "r")) !== FALSE) {
-    // On remet la virgule (,) car c'est ce que ton fichier utilise réellement !
+    // Utilisation de la virgule comme séparateur (selon ton fichier)
     while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
         $clients[] = $data;
     }
@@ -34,12 +34,9 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     // Action : Télécharger la fiche client
     if ($_GET['action'] === 'download' && isset($clients[$id])) {
         $c = $clients[$id];
-        // Adaptation si 4 ou 5 colonnes
-        $adresse_txt = (count($c) === 4) ? "Non renseignée" : ($c[3] ?? "");
-        $ville_txt = (count($c) === 4) ? ($c[3] ?? "") : ($c[4] ?? "");
 
         $contenu = "FICHE CLIENT - JOSSEL\n--------------------\n";
-        $contenu .= "Nom : " . ($c[0] ?? "") . "\nEmail : " . ($c[1] ?? "") . "\nTéléphone : " . ($c[2] ?? "") . "\nAdresse : " . $adresse_txt . "\nVille : " . $ville_txt;
+        $contenu .= "Nom : " . ($c[0] ?? "") . "\nEmail : " . ($c[1] ?? "") . "\nTéléphone : " . ($c[2] ?? "") . "\nVille : " . ($c[3] ?? "");
         
         header('Content-Type: text/plain; charset=utf-8');
         header('Content-Disposition: attachment; filename="fiche_client_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', ($c[0] ?? "inconnu")) . '.txt"');
@@ -64,16 +61,16 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
 
 // GESTION DE L'AJOUT (POST)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add' && $peut_ajouter) {
+    // On ne récupère que les 4 champs
     $nouveau_client = [
         $_POST['nom'],
         $_POST['email'],
         $_POST['telephone'],
-        $_POST['adresse'],
         $_POST['ville']
     ];
     
     $handle = fopen($fichier_csv, 'a');
-    fputcsv($handle, $nouveau_client, ","); // Écriture avec la virgule
+    fputcsv($handle, $nouveau_client, ",");
     fclose($handle);
     
     header('Location: client.php?msg=added');
@@ -170,7 +167,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <th>Nom</th>
                         <th>Email</th>
                         <th>Téléphone</th>
-                        <th>Adresse</th>
                         <th>Ville</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -184,25 +180,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             // On n'affiche que si on a au moins un nom renseigné
                             if (!empty(trim($data[0]))) {
                                 
-                                // Extraction sécurisée
+                                // Extraction sécurisée des 4 colonnes
                                 $nom = htmlspecialchars($data[0] ?? '');
                                 $email = htmlspecialchars($data[1] ?? '');
                                 $tel = htmlspecialchars($data[2] ?? '');
-                                
-                                // Gestion intelligente si le CSV n'a que 4 colonnes (Pas d'adresse)
-                                if (count($data) === 4) {
-                                    $adresse = '<span class="text-black-50 fst-italic small">Non renseignée</span>';
-                                    $ville = htmlspecialchars($data[3] ?? '');
-                                } else {
-                                    $adresse = htmlspecialchars($data[3] ?? '');
-                                    $ville = htmlspecialchars($data[4] ?? '');
-                                }
+                                $ville = htmlspecialchars($data[3] ?? '');
 
                                 echo "<tr>";
                                 echo "<td><strong style='color: var(--c-texte);'>{$nom}</strong></td>";
                                 echo "<td><a href='mailto:{$email}' class='email-link'>{$email}</a></td>";
                                 echo "<td><span class='text-muted'>{$tel}</span></td>";
-                                echo "<td>{$adresse}</td>";
                                 echo "<td><span class='text-muted'>{$ville}</span></td>";
                                 
                                 echo "<td class='text-end text-nowrap'>";
@@ -219,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             }
                         }
                     } else {
-                        echo "<tr><td colspan='6' class='text-center p-5 text-muted'>Aucun client trouvé.</td></tr>";
+                        echo "<tr><td colspan='5' class='text-center p-5 text-muted'>Aucun client trouvé.</td></tr>";
                     }
                     ?>
                 </tbody>
@@ -249,10 +236,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <div class="mb-3">
                     <label class="form-label">Téléphone</label>
                     <input type="text" name="telephone" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Adresse</label>
-                    <input type="text" name="adresse" class="form-control" required>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Ville</label>
