@@ -7,19 +7,23 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-// 2. GESTION DES PERMISSIONS
+// 2. GESTION DES PERMISSIONS (Harmonisée avec clients.php et partenaires.php)
 $role = strtolower($_SESSION['user']['role'] ?? $_SESSION['user']['groupe'] ?? 'salarie');
 $nom_user_connecte = $_SESSION['user']['nom'] ?? $_SESSION['user']['login'] ?? 'Utilisateur';
 
-$is_admin = ($role === 'admin' || $role === 'administrateur');
-// Ligne de test : décommente la ligne suivante pour forcer le mode admin sur ta machine
-// $is_admin = true;
+// L'admin ET la direction ont le droit de modifier les informations
+$peut_modifier = ($role === 'admin' || $role === 'administrateur' || $role === 'direction');
 
+// Ligne de test : décommente la ligne suivante pour forcer le mode modification sur ta machine de test
+// $peut_modifier = true;
+
+// 3. LOGIQUE MÉTIER (CRUD JSON)
 $fichier_json = __DIR__ . '/data/utilisateurs.json';
 $message_succes = '';
 $message_erreur = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'modifier' && $is_admin) {
+// Traitement du formulaire de modification (POST)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'modifier' && $peut_modifier) {
     if (file_exists($fichier_json)) {
         $contenu_json = file_get_contents($fichier_json);
         $employes = json_decode($contenu_json, true);
@@ -28,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         
         foreach ($employes as $key => $emp) {
             if (isset($emp['id']) && intval($emp['id']) === $id_a_modifier) {
-                // Mise à jour des champs
+                // Mise à jour des champs textuels du fichier utilisateurs.json
                 $employes[$key]['nom'] = trim($_POST['nom_complet']);
                 $employes[$key]['poste'] = trim($_POST['poste']);
                 $employes[$key]['groupe'] = trim($_POST['groupe']);
@@ -36,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             }
         }
         
+        // Sauvegarde dans le fichier JSON avec un formatage propre
         if (file_put_contents($fichier_json, json_encode($employes, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE))) {
             $message_succes = "Les informations du collaborateur ont été mises à jour avec succès.";
         } else {
@@ -44,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
+// Lecture des données pour l'affichage (GET)
 $employes = [];
 if (file_exists($fichier_json)) {
     $contenu_json = file_get_contents($fichier_json);
@@ -60,6 +66,7 @@ if (file_exists($fichier_json)) {
     <title>Annuaire des Collaborateurs - Intranet JOSSEL</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        /* CHARTE GRAPHIQUE UNIFIÉE JOSSEL */
         :root {
             --c-fond: #FFFFFF;            
             --c-texte: #1A1A1A;           
@@ -103,6 +110,7 @@ if (file_exists($fichier_json)) {
         .table tbody tr:last-child td { border-bottom: none; }
         .table tbody tr:hover { background-color: #FAFAFA; }
 
+        /* Photo de profil ronde */
         .avatar-img { width: 45px; height: 45px; object-fit: cover; border-radius: 50%; border: 1px solid var(--c-structurant); }
     </style>
 </head>
@@ -143,8 +151,8 @@ if (file_exists($fichier_json)) {
                 <h2 class="fw-bold m-0">Équipe & Collaborateurs</h2>
                 <p class="text-muted small m-0 mt-1">Liste officielle du personnel de l'entreprise (Base JSON)</p>
             </div>
-            <?php if ($is_admin): ?>
-                <span class="badge bg-danger px-3 py-2 rounded-pill">Mode Admin Actif</span>
+            <?php if ($peut_modifier): ?>
+                <span class="badge bg-danger px-3 py-2 rounded-pill">Mode Édition Activé</span>
             <?php endif; ?>
         </div>
 
@@ -156,7 +164,7 @@ if (file_exists($fichier_json)) {
                         <th>Nom Complet</th>
                         <th>Poste / Fonction</th>
                         <th>Groupe d'accès</th>
-                        <?php if ($is_admin): ?><th class="text-end pe-4">Actions</th><?php endif; ?>
+                        <?php if ($peut_modifier): ?><th class="text-end pe-4">Actions</th><?php endif; ?>
                     </tr>
                 </thead>
                 <tbody>
@@ -187,7 +195,7 @@ if (file_exists($fichier_json)) {
                                 </span>
                             </td>
                             
-                            <?php if ($is_admin): ?>
+                            <?php if ($peut_modifier): ?>
                             <td class="text-end pe-4 text-nowrap">
                                 <button class="btn btn-structurant btn-sm edit-btn" 
                                         data-bs-toggle="modal" 
@@ -210,7 +218,7 @@ if (file_exists($fichier_json)) {
         </div>
     </div>
 
-    <?php if ($is_admin): ?>
+    <?php if ($peut_modifier): ?>
     <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -258,6 +266,7 @@ if (file_exists($fichier_json)) {
                     document.getElementById('modal_id_user').value = this.getAttribute('data-id');
                     document.getElementById('modal_nom').value = this.getAttribute('data-nom');
                     document.getElementById('modal_poste').value = this.getAttribute('data-poste');
+                    
                     const groupe = this.getAttribute('data-groupe').toLowerCase();
                     const select = document.getElementById('modal_groupe');
                     for (let i = 0; i < select.options.length; i++) {
