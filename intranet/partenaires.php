@@ -1,27 +1,25 @@
 <?php
 session_start();
 
-// Protection : si pas de session, retour immédiat au login
 if (!isset($_SESSION['user'])) {
     header('Location: login.php');
     exit;
 }
 
-// Récupération des données de la session uniforme (Lot 5)
-$role = isset($_SESSION['user']['groupe']) ? $_SESSION['user']['groupe'] : 'Salarié';
-$login = isset($_SESSION['user']['login']) ? $_SESSION['user']['login'] : 'Utilisateur';
+// CORRECTION LECTURE : On lit la clé 'role' de la session
+$role = $_SESSION['user']['role'] ?? 'salarie';
+$login = $_SESSION['user']['login'] ?? 'Utilisateur';
 
-// Droits d'accès pour afficher le bouton d'administration
 $role_verif = strtolower($role);
+// Droits : admin, jtilloy, elouan, leny, lilian, antonin, jaluze ont tous le role "admin". Le directeur a "direction".
 $est_autorise_admin = ($role_verif === 'admin' || $role_verif === 'administrateur' || $role_verif === 'direction');
 
 $chemin_csv = __DIR__ . '/data/partenaires.csv';
 $partenaires = [];
 
-// Lecture du fichier CSV (Zéro SQL)
 if (file_exists($chemin_csv)) {
     if (($handle = fopen($chemin_csv, "r")) !== FALSE) {
-        fgetcsv($handle, 1000, ","); // Saut de l'entête
+        fgetcsv($handle, 1000, ","); 
         while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
             if (count($data) >= 4) {
                 $partenaires[] = [
@@ -43,77 +41,19 @@ if (file_exists($chemin_csv)) {
     <title>Partenaires - Intranet JOSSEL</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* CHARTE GRAPHIQUE SOBRE (Lot 2) */
-        :root {
-            --c-fond: #FFFFFF;            /* Blanc Pur */
-            --c-texte: #1A1A1A;           /* Noir Intense */
-            --c-structurant: #E0E0E0;     /* Gris Clair */
-            --c-action: #0056b3;          /* Bleu Tech */
-            --c-secondaire: #4A4A4A;      /* Gris Anthracite */
-        }
-
-        body {
-            background-color: var(--c-fond);
-            color: var(--c-texte);
-            font-family: system-ui, -apple-system, sans-serif;
-        }
-
-        .navbar-custom {
-            background-color: var(--c-fond);
-            border-bottom: 1px solid var(--c-structurant);
-        }
-        .navbar-custom .navbar-brand {
-            color: var(--c-texte);
-            font-weight: 700;
-        }
-
-        .partner-card {
-            border: 1px solid var(--c-structurant);
-            border-radius: 8px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            background-color: var(--c-fond);
-        }
-        .partner-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0,0,0,0.05);
-        }
-
-        .card-img-container {
-            height: 160px;
-            padding: 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-bottom: 1px solid var(--c-structurant);
-            background-color: #FAFAFA;
-            border-radius: 8px 8px 0 0;
-        }
-        .card-img-container img {
-            max-height: 100%;
-            max-width: 100%;
-            object-fit: contain;
-        }
-
-        .btn-action {
-            background-color: var(--c-action);
-            color: var(--c-fond);
-            border: none;
-            font-weight: 500;
-        }
+        :root { --c-fond: #FFFFFF; --c-texte: #1A1A1A; --c-structurant: #E0E0E0; --c-action: #0056b3; --c-secondaire: #4A4A4A; }
+        body { background-color: var(--c-fond); color: var(--c-texte); font-family: system-ui, -apple-system, sans-serif; }
+        .navbar-custom { background-color: var(--c-fond); border-bottom: 1px solid var(--c-structurant); }
+        .navbar-custom .navbar-brand { color: var(--c-texte); font-weight: 700; }
+        .partner-card { border: 1px solid var(--c-structurant); border-radius: 8px; transition: transform 0.2s ease; background-color: var(--c-fond); }
+        .partner-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.05); }
+        .card-img-container { height: 160px; padding: 1.5rem; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--c-structurant); background-color: #FAFAFA; border-radius: 8px 8px 0 0; }
+        .card-img-container img { max-height: 100%; max-width: 100%; object-fit: contain; }
+        .btn-action { background-color: var(--c-action); color: var(--c-fond); border: none; font-weight: 500; }
         .btn-action:hover { background-color: #004494; color: var(--c-fond); }
-        
-        .btn-structurant {
-            border: 1px solid var(--c-structurant);
-            color: var(--c-texte);
-            background: transparent;
-        }
+        .btn-structurant { border: 1px solid var(--c-structurant); color: var(--c-texte); background: transparent; }
         .btn-structurant:hover { background-color: var(--c-structurant); }
-
-        .badge-role {
-            background-color: var(--c-structurant);
-            color: var(--c-secondaire);
-            text-transform: capitalize;
-        }
+        .badge-role { background-color: var(--c-structurant); color: var(--c-secondaire); text-transform: uppercase; font-size: 0.75rem; }
     </style>
 </head>
 <body>
@@ -157,9 +97,7 @@ if (file_exists($chemin_csv)) {
                                     <?= htmlspecialchars($p['description']) ?>
                                 </p>
                                 <div class="mt-4">
-                                    <a href="<?= htmlspecialchars($p['site']) ?>" target="_blank" class="btn btn-action w-100">
-                                        Visiter le site
-                                    </a>
+                                    <a href="<?= htmlspecialchars($p['site']) ?>" target="_blank" class="btn btn-action w-100">Visiter le site</a>
                                 </div>
                             </div>
                         </div>
@@ -172,6 +110,5 @@ if (file_exists($chemin_csv)) {
             </div>
         <?php endif; ?>
     </div>
-
 </body>
 </html>

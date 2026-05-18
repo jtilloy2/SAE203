@@ -2,7 +2,7 @@
 session_start();
 
 if (isset($_SESSION['user'])) {
-    header('Location: client.php');
+    header('Location: index.php');
     exit;
 }
 
@@ -24,26 +24,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($user['login'] === $login_saisi) {
                     $trouve = true;
                     $hash_stocke = trim($user['password'] ?? '');
-                    
+
                     if (password_verify($mdp_saisi, $hash_stocke)) {
                         
-                        // ON SAUVEGARDE BIEN LE ROLE ICI
+                        // ALIGNEMENT STRICT : On utilise 'login' et 'role' partout
                         $_SESSION['user'] = [
                             'login' => $user['login'],
-                            'role'  => $user['role'] ?? 'salarie',
-                            'nom'   => ucfirst($user['login'])
+                            'role'  => $user['role'] ?? 'salarie'
                         ];
                         
-                        header('Location: client.php');
+                        header('Location: index.php');
                         exit;
                     } else {
                         $erreur = "Mot de passe incorrect.";
                     }
                 }
             }
-            if (!$trouve) {
-                $erreur = "Identifiant inconnu.";
-            }
+            if (!$trouve) $erreur = "Identifiant inconnu.";
         } else {
             $erreur = "Fichier JSON vide ou mal formé.";
         }
@@ -60,9 +57,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root { --c-fond: #FFFFFF; --c-texte: #1A1A1A; --c-structurant: #E0E0E0; --c-action: #0056b3; }
-        body { background-color: #f4f6f8; color: var(--c-texte); font-family: system-ui, sans-serif; }
+        body { background-color: #f4f6f8; color: var(--c-texte); font-family: system-ui, -apple-system, sans-serif; }
         .login-card { background-color: var(--c-fond); border: 1px solid var(--c-structurant); border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .brand-logo { font-size: 1.5rem; font-weight: 700; color: var(--c-texte); text-align: center; margin-bottom: 1.5rem; letter-spacing: -0.5px; }
+        .brand-logo { font-size: 1.5rem; font-weight: 700; color: var(--c-texte); text-align: center; margin-bottom: 1.5rem; }
         .btn-action { background-color: var(--c-action); color: var(--c-fond); border: none; font-weight: 500; }
         .btn-action:hover { background-color: #004494; color: var(--c-fond); }
     </style>
