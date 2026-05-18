@@ -14,7 +14,36 @@ function shortcode_liste_partenaires() {
     $csv_file = ABSPATH . '../intranet/data/partenaires.csv';
     $base_url_images = "/SAE203/intranet/"; // URL du serveur de production
     
-    $output = '<div class="row" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 20px;">';
+    // Injection du CSS pour forcer 3 éléments par ligne
+    $output = '<style>
+        .grille-partenaires {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* Force exactement 3 colonnes de taille égale */
+            gap: 20px; /* Espace entre les logos */
+            padding: 20px 0;
+        }
+        .card-partenaire {
+            border: 1px solid #ddd;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Petit effet d\'ombre sympa */
+        }
+        .card-partenaire img {
+            max-height: 80px;
+            max-width: 100%;
+            margin-bottom: 10px;
+        }
+        /* Mode téléphone : 1 élément par ligne pour que ça reste beau */
+        @media (max-width: 768px) {
+            .grille-partenaires {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>';
+
+    $output .= '<div class="grille-partenaires">';
 
     // 2. Vérification de l'existence du fichier
     if (file_exists($csv_file)) {
@@ -25,7 +54,6 @@ function shortcode_liste_partenaires() {
             fgetcsv($handle, 1000, ",");
 
             // 4. Lecture ligne par ligne avec fgetcsv (Obligatoire)
-            // Structure CSV détectée : Nom[0], Logo[1], Description, SiteWeb[3]
             while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
                 $nom = htmlspecialchars($data[0]);
                 $logo_path = htmlspecialchars($data[1]); // contient "img/partenaires/fichier.png"
@@ -34,9 +62,9 @@ function shortcode_liste_partenaires() {
 
                 // 5. Generation du HTML
                 $output .= '
-                <div class="card-partenaire" style="width: 250px; border: 1px solid #ddd; padding: 15px; text-align: center; border-radius: 8px;">
-                    <img src="' . $base_url_images . $logo_path . '" alt="Logo ' . $nom . '" style="max-height: 80px; margin-bottom: 10px;">
-                    <h4 style="margin: 10px 0;">' . $nom . '</h4>
+                <div class="card-partenaire">
+                    <img src="' . $base_url_images . $logo_path . '" alt="Logo ' . $nom . '">
+                    <h4 style="margin: 10px 0; color: #1a5c8a;">' . $nom . '</h4>
                     <p style="font-size: 0.9em; color: #666; height: 60px; overflow: hidden;">' . $description . '</p>
                     <a href="' . $site_web . '" target="_blank" style="display: inline-block; background: #0073aa; color: #fff; padding: 5px 10px; text-decoration: none; border-radius: 4px; font-size: 0.8em;">Visiter le site</a>
                 </div>';
@@ -54,3 +82,4 @@ function shortcode_liste_partenaires() {
 
 // 6. Enregistrement du shortcode
 add_shortcode('afficher_partenaires', 'shortcode_liste_partenaires');
+?>
