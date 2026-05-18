@@ -1,5 +1,6 @@
 Nom,Logo,Description,SiteWeb
 <<<<<<< HEAD
+<<<<<<< HEAD
 ECPR,img/partenaires/ecpr.png,Entente Cycliste du Pays de Rennes - Club de cyclisme de competition,https://entente-cycliste-rennes.fr/
 US VERN CYCLISME,img/partenaires/usv.png,l'Union Sportive de Vern Cyclisme - club de cyclisme de competition et loisir,https://jtilloy2.github.io/usvcyclisme/index.html
 Shimano,img/partenaires/shimano.png,Leader mondial des composants et equipements pour velos,https://bike.shimano.com
@@ -7,3 +8,11 @@ Specialized,img/partenaires/specialized.png,Constructeur de velos haute performa
 Decathlon Pro,img/partenaires/decathlon.png,Partenaire equipementier pour les flottes de velos d'entreprise,https://www.decathlonpro.fr
 >>>>>>> 442e1860c88925ddef9f1bf9a4b9fad5a84b5724
 Velo & Oxygen,img/partenaires/velo-oxygen.png,Reseau de magasins specialistes du velo en France,https://www.velo-oxygen.fr/
+=======
+ECPR,img/partenaires/ecpr.png,Entente Cycliste du Pays de Rennes - Club de cyclisme de competition et loisir,https://entente-cycliste-rennes.fr/
+Shimano,img/partenaires/shimano.png,Leader mondial des composants et equipements pour velos,https://bike.shimano.com
+Specialized,img/partenaires/specialized.png,Constructeur de velos haute performance et equipements cyclistes,https://www.specialized.com/fr/fr/shop/velos
+Decathlon Pro,img/partenaires/decathlon.png,Partenaire equipementier pour les flottes de velos d'entreprise,https://www.decathlonpro.fr/
+=======
+
+>>>>>>> 022a3005a640695cf51965fd52330204ac58c3d2
