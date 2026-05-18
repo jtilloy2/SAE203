@@ -8,11 +8,15 @@ if (!isset($_SESSION['user'])) {
 }
 
 // ---------------------------------------------------------
-// GESTION DES RÔLES (Simulation pour le Lot 2 / Lot 5)
-// Valeurs possibles : 'admin', 'direction', 'manager', 'salarie'
+// CORRECTION : GESTION DU RÔLE ADMIN
 // ---------------------------------------------------------
-// Si le rôle n'est pas défini, on le force à 'salarie' par défaut
+// On définit 'salarie' par défaut
 $role_utilisateur = $_SESSION['role'] ?? 'salarie'; 
+
+// FORCAGE : Si l'identifiant tapé au login est 'admin', on le passe en rôle admin
+if (strtolower($_SESSION['user']) === 'admin') {
+    $role_utilisateur = 'admin';
+}
 
 $chemin_csv = __DIR__ . '/data/partenaires.csv';
 $partenaires = [];
@@ -38,15 +42,13 @@ if (file_exists($chemin_csv)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nos Partenaires - Intranet JOSSEL (Vélomat)</title>
+    <title>Nos Partenaires - Intranet Vélomat</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     
     <style>
-        /* =========================================
-           CHARTE GRAPHIQUE MODERNE JOSSEL
-           ========================================= */
+        /* Charte Graphique */
         :root {
             --c-pure-white: #FFFFFF;
             --c-dark-charcoal: #1A1A1A;
@@ -60,7 +62,6 @@ if (file_exists($chemin_csv)) {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--c-pure-white);
             color: var(--c-dark-charcoal);
-            letter-spacing: -0.02em;
             -webkit-font-smoothing: antialiased;
             display: flex;
             flex-direction: column;
@@ -74,112 +75,54 @@ if (file_exists($chemin_csv)) {
             padding: 1.25rem 0;
         }
         .navbar-brand-custom {
-            font-weight: 800;
-            font-size: 1.25rem;
-            color: var(--c-dark-charcoal);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            font-weight: 800; font-size: 1.25rem; color: var(--c-dark-charcoal); text-decoration: none;
+            display: flex; align-items: center; gap: 0.5rem;
         }
         .navbar-brand-custom span { color: var(--c-tech-blue); }
 
         .btn-minimal {
-            background: transparent;
-            border: 1px solid var(--c-fine-border);
-            color: var(--c-slate-gray);
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-weight: 500;
-            font-size: 0.875rem;
-            transition: all 0.2s ease;
-            text-decoration: none;
+            background: transparent; border: 1px solid var(--c-fine-border); color: var(--c-slate-gray);
+            padding: 0.5rem 1rem; border-radius: 8px; font-weight: 500; font-size: 0.875rem;
+            transition: all 0.2s ease; text-decoration: none;
         }
-        .btn-minimal:hover {
-            border-color: var(--c-dark-charcoal);
-            color: var(--c-dark-charcoal);
-            background: var(--c-soft-gray);
-        }
+        .btn-minimal:hover { border-color: var(--c-dark-charcoal); color: var(--c-dark-charcoal); background: var(--c-soft-gray); }
 
-        /* --- En-tête (Hero) --- */
+        /* --- En-tête --- */
         .header-minimal { padding: 4rem 0 2rem 0; }
         .header-title { font-size: 2.75rem; font-weight: 800; letter-spacing: -0.04em; }
         .header-subtitle { font-size: 1.1rem; color: var(--c-slate-gray); max-width: 600px; }
 
         .modern-badge {
-            background-color: var(--c-soft-gray);
-            border: 1px solid var(--c-fine-border);
-            color: var(--c-dark-charcoal);
-            padding: 0.4rem 1rem;
-            border-radius: 30px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
+            background-color: var(--c-soft-gray); border: 1px solid var(--c-fine-border);
+            color: var(--c-dark-charcoal); padding: 0.4rem 1rem; border-radius: 30px;
+            font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem;
         }
-        
-        .role-badge {
-            background-color: var(--c-tech-blue);
-            color: var(--c-pure-white);
-            border-color: var(--c-tech-blue);
-        }
+        .role-badge { background-color: var(--c-tech-blue); color: var(--c-pure-white); border-color: var(--c-tech-blue); }
 
         /* --- Cartes --- */
         .modern-partner-card {
-            background: var(--c-pure-white);
-            border: 1px solid var(--c-fine-border);
-            border-radius: 16px;
-            padding: 1.75rem;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            transition: all 0.4s ease;
+            background: var(--c-pure-white); border: 1px solid var(--c-fine-border); border-radius: 16px;
+            padding: 1.75rem; height: 100%; display: flex; flex-direction: column; transition: all 0.4s ease;
         }
-        .modern-partner-card:hover {
-            border-color: var(--c-dark-charcoal);
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.05);
-        }
+        .modern-partner-card:hover { border-color: var(--c-dark-charcoal); transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0, 0, 0, 0.05); }
 
         .logo-wrapper {
-            background-color: var(--c-soft-gray);
-            border-radius: 12px;
-            height: 130px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            transition: background-color 0.3s ease;
+            background-color: var(--c-soft-gray); border-radius: 12px; height: 130px;
+            display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+            margin-bottom: 1.5rem; transition: background-color 0.3s ease;
         }
-        .logo-wrapper img {
-            max-height: 100%; max-width: 100%;
-            object-fit: contain; filter: grayscale(100%); opacity: 0.75;
-            transition: all 0.3s ease;
-        }
-        .modern-partner-card:hover .logo-wrapper img {
-            filter: grayscale(0%); opacity: 1; transform: scale(1.05);
-        }
+        .logo-wrapper img { max-height: 100%; max-width: 100%; object-fit: contain; filter: grayscale(100%); opacity: 0.75; transition: all 0.3s ease; }
+        .modern-partner-card:hover .logo-wrapper img { filter: grayscale(0%); opacity: 1; transform: scale(1.05); }
 
         .partner-heading { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
         .partner-text { font-size: 0.95rem; color: var(--c-slate-gray); flex-grow: 1; }
 
         /* --- Boutons d'action --- */
         .btn-premium {
-            background-color: var(--c-dark-charcoal);
-            color: var(--c-pure-white);
-            border: 1px solid var(--c-dark-charcoal);
-            padding: 0.65rem 1.2rem;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            transition: all 0.2s ease;
-            text-decoration: none;
+            background-color: var(--c-dark-charcoal); color: var(--c-pure-white); border: 1px solid var(--c-dark-charcoal);
+            padding: 0.65rem 1.2rem; border-radius: 10px; font-weight: 600; font-size: 0.9rem;
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+            transition: all 0.2s ease; text-decoration: none;
         }
         .btn-premium:hover { background-color: var(--c-tech-blue); border-color: var(--c-tech-blue); color: white;}
     </style>
@@ -192,9 +135,10 @@ if (file_exists($chemin_csv)) {
                 <i class="bi bi-bicycle"></i> Intranet <span>JOSSEL</span>
             </a>
             <div class="d-flex align-items-center gap-2">
-                <span class="modern-badge role-badge me-3 d-none d-md-flex">
-                    <i class="bi bi-person-badge"></i> Profil : <?= ucfirst(htmlspecialchars($role_utilisateur)) ?>
+                <span class="modern-badge role-badge me-3 d-none d-md-flex text-uppercase" style="letter-spacing: 1px; font-size: 0.75rem;">
+                    <i class="bi bi-person-badge"></i> <?= htmlspecialchars($role_utilisateur) ?>
                 </span>
+                
                 <a href="index.php" class="btn-minimal"><i class="bi bi-house"></i> Accueil</a>
                 <a href="logout.php" class="btn-minimal text-danger border-danger"><i class="bi bi-power"></i></a>
             </div>
@@ -209,7 +153,6 @@ if (file_exists($chemin_csv)) {
                     <p class="header-subtitle mb-4">Gérez l'écosystème et les acteurs de confiance qui collaborent au quotidien avec le groupe Vélomat.</p>
                     
                     <div class="d-flex flex-wrap gap-3">
-                        
                         <?php if (in_array($role_utilisateur, ['admin', 'direction', 'manager'])): ?>
                             <a href="data/partenaires.csv" download class="btn-minimal" style="background: var(--c-soft-gray);">
                                 <i class="bi bi-download"></i> Télécharger le CSV
@@ -221,13 +164,12 @@ if (file_exists($chemin_csv)) {
                                 <i class="bi bi-plus-lg"></i> Ajouter un partenaire
                             </button>
                         <?php endif; ?>
-                        
                     </div>
                 </div>
                 
                 <div class="col-lg-4 text-lg-end">
                     <span class="modern-badge fs-6 px-4 py-2">
-                        <i class="bi bi-building-check text-success"></i> <?= count($partenaires) ?> Partenaires Actifs
+                        <i class="bi bi-building-check text-success"></i> <?= count($partenaires) ?> Partenaires
                     </span>
                 </div>
             </div>
@@ -236,8 +178,8 @@ if (file_exists($chemin_csv)) {
 
     <main class="container pb-5 flex-grow-1">
         <?php if (!empty($partenaires)): ?>
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4">
-                <?php foreach ($partenaires as $index => $p): ?>
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+                <?php foreach ($partenaires as $p): ?>
                     <div class="col">
                         <div class="modern-partner-card">
                             
