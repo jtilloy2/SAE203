@@ -12,7 +12,7 @@ $role = isset($_SESSION['user']['role']) ? strtolower($_SESSION['user']['role'])
 $peut_ajouter = in_array($role, ['admin', 'direction', 'manager']);
 $peut_modifier = in_array($role, ['admin', 'direction', 'manager']);
 $peut_supprimer = in_array($role, ['admin', 'direction']);
-$afficher_actions = true; // On affiche toujours la colonne pour le bouton "Télécharger"
+$afficher_actions = true; 
 
 // 3. LOGIQUE MÉTIER (CRUD CSV)
 $fichier_csv = __DIR__ . '/data/clients.csv';
@@ -20,8 +20,8 @@ $fichier_csv = __DIR__ . '/data/clients.csv';
 // Lecture de tout le CSV dans un tableau en mémoire
 $clients = [];
 if (file_exists($fichier_csv) && ($handle = fopen($fichier_csv, "r")) !== FALSE) {
-    // Utilisation du point-virgule (;) comme séparateur standard Excel/France
-    while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
+    // On remet la virgule (,) car c'est ce que ton fichier utilise réellement !
+    while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
         $clients[] = $data;
     }
     fclose($handle);
@@ -31,27 +31,30 @@ if (file_exists($fichier_csv) && ($handle = fopen($fichier_csv, "r")) !== FALSE)
 if (isset($_GET['action']) && isset($_GET['id'])) {
     $id = (int)$_GET['id'];
     
-    // Action : Télécharger la fiche client (Exigence Cahier des charges)
+    // Action : Télécharger la fiche client
     if ($_GET['action'] === 'download' && isset($clients[$id])) {
-        $c = array_pad($clients[$id], 5, '');
+        $c = $clients[$id];
+        // Adaptation si 4 ou 5 colonnes
+        $adresse_txt = (count($c) === 4) ? "Non renseignée" : ($c[3] ?? "");
+        $ville_txt = (count($c) === 4) ? ($c[3] ?? "") : ($c[4] ?? "");
+
         $contenu = "FICHE CLIENT - JOSSEL\n--------------------\n";
-        $contenu .= "Nom : " . $c[0] . "\nEmail : " . $c[1] . "\nTéléphone : " . $c[2] . "\nAdresse : " . $c[3] . "\nVille : " . $c[4];
+        $contenu .= "Nom : " . ($c[0] ?? "") . "\nEmail : " . ($c[1] ?? "") . "\nTéléphone : " . ($c[2] ?? "") . "\nAdresse : " . $adresse_txt . "\nVille : " . $ville_txt;
         
         header('Content-Type: text/plain; charset=utf-8');
-        header('Content-Disposition: attachment; filename="fiche_client_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $c[0]) . '.txt"');
+        header('Content-Disposition: attachment; filename="fiche_client_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', ($c[0] ?? "inconnu")) . '.txt"');
         echo $contenu;
         exit;
     }
 
     // Action : Supprimer
     if ($_GET['action'] === 'delete' && $peut_supprimer && isset($clients[$id]) && $id !== 0) {
-        unset($clients[$id]); // On supprime la ligne
-        $clients = array_values($clients); // On réindexe le tableau proprement
+        unset($clients[$id]);
+        $clients = array_values($clients);
         
-        // On réécrit tout le fichier avec le séparateur ;
         $handle = fopen($fichier_csv, 'w');
         foreach ($clients as $ligne) {
-            fputcsv($handle, $ligne, ";");
+            fputcsv($handle, $ligne, ","); // Écriture avec la virgule
         }
         fclose($handle);
         header('Location: client.php?msg=deleted');
@@ -69,15 +72,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $_POST['ville']
     ];
     
-    // Écriture à la fin du fichier avec le séparateur ;
     $handle = fopen($fichier_csv, 'a');
-    fputcsv($handle, $nouveau_client, ";");
+    fputcsv($handle, $nouveau_client, ","); // Écriture avec la virgule
     fclose($handle);
     
     header('Location: client.php?msg=added');
     exit;
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -86,7 +87,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <title>Annuaire des Clients - Intranet JOSSEL</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* INTÉGRATION DE LA CHARTE GRAPHIQUE */
         :root {
             --c-fond: #FFFFFF;            
             --c-texte: #1A1A1A;           
@@ -177,25 +177,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 </thead>
                 <tbody>
                     <?php
-                    // On vérifie si on a des clients au-delà de la ligne d'en-tête
                     if (count($clients) > 1) {
                         foreach ($clients as $id => $data) {
-                            if ($id === 0) continue; // On ignore la ligne d'en-tête du CSV
+                            if ($id === 0) continue; // Ignorer l'en-tête
                             
-                            // Sécurité : évite les "Undefined offset" si une colonne manque dans le CSV
-                            $data = array_pad($data, 5, '');
-                            
-                            // On n'affiche la ligne que si elle contient au moins un nom
+                            // On n'affiche que si on a au moins un nom renseigné
                             if (!empty(trim($data[0]))) {
-                                echo "<tr>";
-                                echo "<td><strong style='color: var(--c-texte);'>" . htmlspecialchars($data[0]) . "</strong></td>";
-                                echo "<td><a href='mailto:" . htmlspecialchars($data[1]) . "' class='email-link'>" . htmlspecialchars($data[1]) . "</a></td>";
-                                echo "<td><span class='text-muted'>" . htmlspecialchars($data[2]) . "</span></td>";
-                                echo "<td><span class='text-muted'>" . htmlspecialchars($data[3]) . "</span></td>";
-                                echo "<td><span class='text-muted'>" . htmlspecialchars($data[4]) . "</span></td>";
                                 
-                                echo "<td class='text-end'>";
-                                // Tout le monde peut télécharger la fiche
+                                // Extraction sécurisée
+                                $nom = htmlspecialchars($data[0] ?? '');
+                                $email = htmlspecialchars($data[1] ?? '');
+                                $tel = htmlspecialchars($data[2] ?? '');
+                                
+                                // Gestion intelligente si le CSV n'a que 4 colonnes (Pas d'adresse)
+                                if (count($data) === 4) {
+                                    $adresse = '<span class="text-black-50 fst-italic small">Non renseignée</span>';
+                                    $ville = htmlspecialchars($data[3] ?? '');
+                                } else {
+                                    $adresse = htmlspecialchars($data[3] ?? '');
+                                    $ville = htmlspecialchars($data[4] ?? '');
+                                }
+
+                                echo "<tr>";
+                                echo "<td><strong style='color: var(--c-texte);'>{$nom}</strong></td>";
+                                echo "<td><a href='mailto:{$email}' class='email-link'>{$email}</a></td>";
+                                echo "<td><span class='text-muted'>{$tel}</span></td>";
+                                echo "<td>{$adresse}</td>";
+                                echo "<td><span class='text-muted'>{$ville}</span></td>";
+                                
+                                echo "<td class='text-end text-nowrap'>";
                                 echo "<a href='?action=download&id={$id}' class='btn btn-structurant btn-sm me-1'>Fiche</a>";
                                 
                                 if ($peut_modifier) {
@@ -209,7 +219,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             }
                         }
                     } else {
-                        echo "<tr><td colspan='6' class='text-center p-5 text-muted'>Aucun client trouvé dans le fichier data/clients.csv ou fichier vide.</td></tr>";
+                        echo "<tr><td colspan='6' class='text-center p-5 text-muted'>Aucun client trouvé.</td></tr>";
                     }
                     ?>
                 </tbody>
