@@ -1,39 +1,51 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['user'])) {
-    header('Location: login.php');
+if (isset($_SESSION['user'])) {
+    header('Location: index.php');
     exit;
 }
 
-// CORRECTION LECTURE : On lit la clé 'role' de la session
-$role = $_SESSION['user']['role'] ?? 'salarie';
-$login = $_SESSION['user']['login'] ?? 'Utilisateur';
+$erreur = null;
 
-$role_verif = strtolower($role);
-// Blocage de sécurité strict
-if ($role_verif !== 'admin' && $role_verif !== 'administrateur' && $role_verif !== 'direction') {
-    header('Location: partenaires.php');
-    exit;
-}
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $login_saisi = trim($_POST['login'] ?? '');
+    $mdp_saisi = trim($_POST['password'] ?? '');
 
-$chemin_csv = __DIR__ . '/data/partenaires.csv';
-$partenaires = [];
+    $chemin_json = __DIR__ . '/data/users.json';
 
-if (file_exists($chemin_csv)) {
-    if (($handle = fopen($chemin_csv, "r")) !== FALSE) {
-        fgetcsv($handle, 1000, ","); 
-        while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-            if (count($data) >= 4) {
-                $partenaires[] = [
-                    'nom'         => trim($data[0]),
-                    'logo'        => trim($data[1]),
-                    'description' => trim($data[2]),
-                    'site'        => trim($data[3])
-                ];
+    if (file_exists($chemin_json)) {
+        $contenu = file_get_contents($chemin_json);
+        $utilisateurs = json_decode($contenu, true);
+
+        if ($utilisateurs) {
+            $trouve = false;
+            foreach ($utilisateurs as $user) {
+                if ($user['login'] === $login_saisi) {
+                    $trouve = true;
+                    $hash_stocke = trim($user['password'] ?? '');
+
+                    if (password_verify($mdp_saisi, $hash_stocke)) {
+                        
+                        // ALIGNEMENT STRICT : On utilise 'login' et 'role' partout
+                        $_SESSION['user'] = [
+                            'login' => $user['login'],
+                            'role'  => $user['role'] ?? 'salarie'
+                        ];
+                        
+                        header('Location: index.php');
+                        exit;
+                    } else {
+                        $erreur = "Mot de passe incorrect.";
+                    }
+                }
             }
+            if (!$trouve) $erreur = "Identifiant inconnu.";
+        } else {
+            $erreur = "Fichier JSON vide ou mal formé.";
         }
-        fclose($handle);
+    } else {
+        $erreur = "Fichier de données introuvable.";
     }
 }
 ?>
@@ -41,83 +53,40 @@ if (file_exists($chemin_csv)) {
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Console Admin - Partenaires JOSSEL</title>
+    <title>Connexion - Intranet JOSSEL</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        :root { --c-fond: #FFFFFF; --c-texte: #1A1A1A; --c-structurant: #E0E0E0; --c-action: #0056b3; --c-secondaire: #4A4A4A; --c-danger: #dc3545; }
-        body { background-color: var(--c-fond); color: var(--c-texte); font-family: system-ui, -apple-system, sans-serif; }
-        .navbar-custom { background-color: var(--c-fond); border-bottom: 1px solid var(--c-structurant); }
-        .navbar-custom .navbar-brand { color: var(--c-texte); font-weight: 700; }
-        .partner-card { border: 1px solid var(--c-structurant); background-color: var(--c-fond); border-radius: 6px; transition: all 0.2s ease; }
-        .partner-card:hover { border-color: var(--c-texte); box-shadow: 0 10px 20px rgba(0,0,0,0.03); }
-        .card-img-container { height: 140px; padding: 1.2rem; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--c-structurant); background-color: #FAFAFA; border-radius: 6px 6px 0 0; }
-        .card-img-container img { max-height: 100%; max-width: 100%; object-fit: contain; }
+        :root { --c-fond: #FFFFFF; --c-texte: #1A1A1A; --c-structurant: #E0E0E0; --c-action: #0056b3; }
+        body { background-color: #f4f6f8; color: var(--c-texte); font-family: system-ui, -apple-system, sans-serif; }
+        .login-card { background-color: var(--c-fond); border: 1px solid var(--c-structurant); border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .brand-logo { font-size: 1.5rem; font-weight: 700; color: var(--c-texte); text-align: center; margin-bottom: 1.5rem; }
         .btn-action { background-color: var(--c-action); color: var(--c-fond); border: none; font-weight: 500; }
         .btn-action:hover { background-color: #004494; color: var(--c-fond); }
-        .btn-structurant { border: 1px solid var(--c-structurant); color: var(--c-texte); background: transparent; }
-        .btn-structurant:hover { background-color: var(--c-structurant); }
-        .btn-danger-custom { border: 1px solid var(--c-structurant); color: var(--c-danger); background: transparent; }
-        .btn-danger-custom:hover { background-color: var(--c-danger); color: var(--c-fond); border-color: var(--c-danger); }
-        .badge-admin { background-color: var(--c-texte); color: var(--c-fond); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; }
     </style>
 </head>
-<body>
-
-    <nav class="navbar navbar-expand-lg navbar-custom mb-5 py-3">
-        <div class="container d-flex justify-content-between align-items-center">
-            <span class="navbar-brand">JOSSEL <span class="fw-light text-muted">| Console Admin</span></span>
-            <div class="d-flex align-items-center">
-                <span class="me-4 text-muted small">
-                    <?= htmlspecialchars($login) ?> 
-                    <span class="badge badge-admin ms-2"><?= htmlspecialchars($role) ?></span>
-                </span>
-                <a href="partenaires.php" class="btn btn-structurant btn-sm me-2">Voir le site</a>
-                <a href="index.php" class="btn btn-structurant btn-sm me-2">Accueil</a>
-                <a href="logout.php" class="btn btn-action btn-sm">Déconnexion</a>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container pb-5">
-        <div class="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom">
-            <div>
-                <h2 class="fw-bold m-0">Gestion des Partenaires</h2>
-                <p class="text-muted small m-0 mt-1">Espace de configuration (Format CSV)</p>
-            </div>
-            <button class="btn btn-action btn-sm px-3">+ Ajouter un partenaire</button>
-        </div>
-
-        <?php if (!empty($partenaires)): ?>
-            <div class="row row-cols-1 row-cols-md-3 g-4 justify-content-center">
-                <?php foreach ($partenaires as $p): ?>
-                    <div class="col">
-                        <div class="card h-100 partner-card">
-                            <div class="card-img-container">
-                                <img src="<?= htmlspecialchars($p['logo']) ?>" alt="Logo <?= htmlspecialchars($p['nom']) ?>">
-                            </div>
-                            <div class="card-body d-flex flex-column p-4">
-                                <h5 class="card-title fw-bold mb-2"><?= htmlspecialchars($p['nom']) ?></h5>
-                                <p class="card-text small text-muted flex-grow-1 mb-4">
-                                    <?= htmlspecialchars($p['description']) ?>
-                                </p>
-                                <div class="row g-2 pt-3 border-top mt-auto">
-                                    <div class="col-6">
-                                        <button class="btn btn-structurant btn-sm w-100">Modifier</button>
-                                    </div>
-                                    <div class="col-6">
-                                        <button class="btn btn-danger-custom btn-sm w-100">Supprimer</button>
-                                    </div>
-                                </div>
-                            </div>
+<body class="d-flex align-items-center vh-100">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5 col-lg-4">
+                <div class="login-card p-4 p-md-5">
+                    <div class="brand-logo">Intranet JOSSEL</div>
+                    <?php if ($erreur): ?>
+                        <div class="alert alert-danger text-center small p-2"><?= htmlspecialchars($erreur) ?></div>
+                    <?php endif; ?>
+                    <form method="POST" action="login.php">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">Identifiant</label>
+                            <input type="text" name="login" class="form-control" required>
                         </div>
-                    </div>
-                <?php endforeach; ?>
+                        <div class="mb-4">
+                            <label class="form-label small text-muted fw-bold">Mot de passe</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-action w-100 py-2">Se connecter</button>
+                    </form>
+                </div>
             </div>
-        <?php else: ?>
-            <div class="alert alert-light border text-center p-5">
-                <p class="mb-0 text-muted">Aucun partenaire enregistré.</p>
-            </div>
-        <?php endif; ?>
+        </div>
     </div>
 </body>
 </html>
