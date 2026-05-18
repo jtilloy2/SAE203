@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// Si l'utilisateur est déjà connecté, on l'envoie sur l'accueil
+// Si l'utilisateur est déjà connecté, on le redirige vers l'accueil
 if (isset($_SESSION['user'])) {
     header('Location: index.php');
     exit;
@@ -21,20 +21,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($utilisateurs) {
             $trouve = false;
+            
             foreach ($utilisateurs as $user) {
+                // Correspondance exacte sur l'identifiant (ex: "directeur")
                 if ($user['login'] === $login_saisi) {
                     $trouve = true;
-                    // Prise en charge des clés "password" ou "hash" selon comment tu as généré le JSON
+                    
+                    // Récupération du hash (on tolère la clé 'password' ou 'hash')
                     $hash_stocke = trim($user['password'] ?? $user['hash'] ?? '');
-
-                    // SÉCURITÉ : Vérification stricte du hash uniquement ! (Fini le mot de passe en dur)
+                    
+                    // Extraction et normalisation du rôle/groupe
+                    // On cherche 'groupe', sinon 'role', et par défaut 'Salarié'
+                    $role_brut = $user['groupe'] ?? $user['role'] ?? 'Salarié';
+                    
+                    // SÉCURITÉ : Vérification du mot de passe via le hash officiel
                     if (password_verify($mdp_saisi, $hash_stocke)) {
                         
-                        // CORRECTION DU BUG DE RÔLE : 
-                        // On stocke bien 'login' et 'groupe' pour que les autres pages s'y retrouvent.
+                        // ON FIXE LA SESSION POUR TOUT LE MONDE (admin, directeur, manager, salarie)
                         $_SESSION['user'] = [
                             'login'  => $user['login'],
-                            'groupe' => $user['groupe'] ?? $user['role'] ?? 'Salarié' 
+                            'groupe' => $role_brut
                         ];
                         
                         header('Location: index.php');
@@ -44,7 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
             }
-            if (!$trouve) $erreur = "Identifiant inconnu.";
+            if (!$trouve) {
+                $erreur = "Identifiant inconnu.";
+            }
         } else {
             $erreur = "Fichier JSON vide ou mal formé.";
         }
@@ -60,16 +68,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Connexion - Intranet JOSSEL</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* INTÉGRATION DE LA CHARTE GRAPHIQUE (Lot 2 - Antonin) */
+        /* CHARTE GRAPHIQUE SOBRE (Lot 2 - Antonin) */
         :root {
-            --c-fond: #FFFFFF;            /* Blanc Pur */
-            --c-texte: #1A1A1A;           /* Noir Intense */
-            --c-structurant: #E0E0E0;     /* Gris Clair */
-            --c-action: #0056b3;          /* Bleu "Tech" */
+            --c-fond: #FFFFFF;
+            --c-texte: #1A1A1A;
+            --c-structurant: #E0E0E0;
+            --c-action: #0056b3;
         }
 
         body {
-            /* Fond légèrement grisé pour faire ressortir la carte blanche */
             background-color: #f4f6f8; 
             color: var(--c-texte);
             font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
@@ -100,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .btn-action:hover {
-            background-color: #004494; /* Bleu Tech foncé */
+            background-color: #004494;
             color: var(--c-fond);
         }
 
@@ -128,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <form method="POST" action="login.php">
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">Identifiant</label>
-                            <input type="text" name="login" class="form-control" placeholder="ex: admin" required>
+                            <input type="text" name="login" class="form-control" placeholder="ex: directeur" required>
                         </div>
                         <div class="mb-4">
                             <label class="form-label small text-muted fw-bold">Mot de passe</label>
