@@ -23,24 +23,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $trouve = false;
             
             foreach ($utilisateurs as $user) {
-                // Correspondance exacte sur l'identifiant (ex: "directeur")
+                // Correspondance exacte sur l'identifiant
                 if ($user['login'] === $login_saisi) {
                     $trouve = true;
                     
-                    // Récupération du hash (on tolère la clé 'password' ou 'hash')
-                    $hash_stocke = trim($user['password'] ?? $user['hash'] ?? '');
-                    
-                    // Extraction et normalisation du rôle/groupe
-                    // On cherche 'groupe', sinon 'role', et par défaut 'Salarié'
-                    $role_brut = $user['groupe'] ?? $user['role'] ?? 'Salarié';
+                    // Récupération du hash
+                    $hash_stocke = trim($user['password'] ?? '');
                     
                     // SÉCURITÉ : Vérification du mot de passe via le hash officiel
                     if (password_verify($mdp_saisi, $hash_stocke)) {
                         
-                        // ON FIXE LA SESSION POUR TOUT LE MONDE (admin, directeur, manager, salarie)
+                        // ON FIXE LA SESSION EN UTILISANT LES BONNES CLÉS (role et nom)
                         $_SESSION['user'] = [
                             'login'  => $user['login'],
-                            'groupe' => $role_brut
+                            'role'   => $user['role'] ?? 'salarie',
+                            'nom'    => ucfirst($user['login']) // Met la 1ère lettre en majuscule pour l'affichage
                         ];
                         
                         header('Location: index.php');
