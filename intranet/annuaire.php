@@ -40,8 +40,8 @@ $fichier_json = 'data/utilisateurs.json';
                                 <th scope="col" class="ps-4 py-3">Photo</th>
                                 <th scope="col" class="py-3">Nom</th>
                                 <th scope="col" class="py-3">Prénom</th>
-                                <th scope="col" class="py-3">Poste / Fonction</th>
-                                <th scope="col" class="pe-4 py-3">Biographie</th>
+                                <th scope="col" class="py-3">Poste</th>
+                                <th scope="col" class="pe-4 py-3">Groupe (Droits)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -52,26 +52,34 @@ $fichier_json = 'data/utilisateurs.json';
 
                                 if (is_array($employes)) {
                                     foreach ($employes as $emp) {
-                                        // On récupère les infos. Si elles n'existent pas, on met un texte par défaut ('—')
-                                        $nom       = htmlspecialchars($emp['nom'] ?? '—');
-                                        $prenom    = htmlspecialchars($emp['prenom'] ?? '—');
-                                        $fonction  = htmlspecialchars($emp['fonction'] ?? 'Non défini');
-                                        $bio       = htmlspecialchars($emp['bio'] ?? 'Aucune biographie renseignée.');
+                                        // 1. Séparation du nom complet en Prénom et Nom
+                                        $nom_complet = $emp['nom'] ?? '';
+                                        $parts = explode(' ', $nom_complet, 2); // Coupe à la première espace
+                                        $prenom = htmlspecialchars($parts[0] ?? '—');
+                                        $nom    = htmlspecialchars($parts[1] ?? '');
+
+                                        // 2. Récupération des autres données
+                                        $poste     = htmlspecialchars($emp['poste'] ?? 'Non défini');
+                                        $groupe    = htmlspecialchars($emp['groupe'] ?? '—');
                                         $photo_url = htmlspecialchars($emp['photo'] ?? '');
 
-                                        // ASTUCE : Si la photo est vide, on génère un avatar avec les initiales
-                                        if (empty($photo_url)) {
-                                            $photo_url = "https://ui-avatars.com/api/?name=" . urlencode($prenom . " " . $nom) . "&background=0D8ABC&color=fff&rounded=true&size=128";
-                                        }
+                                        // 3. Avatar de secours généré via l'API si l'image locale est introuvable
+                                        $avatar_secours = "https://ui-avatars.com/api/?name=" . urlencode($prenom . " " . $nom) . "&background=random&color=fff&rounded=true&size=128";
+
+                                        // 4. Attribution des couleurs selon le groupe
+                                        $badge_color = 'bg-secondary';
+                                        if ($groupe == 'admin') $badge_color = 'bg-danger';
+                                        if ($groupe == 'manager') $badge_color = 'bg-warning text-dark';
+                                        if ($groupe == 'direction') $badge_color = 'bg-info text-dark';
+                                        if ($groupe == 'salarie') $badge_color = 'bg-success';
 
                                         echo "<tr>";
-                                        // Affichage de la photo avec une petite bordure stylée
-                                        echo "<td class='ps-4'><img src='{$photo_url}' alt='Photo' class='rounded-circle border border-2 border-white shadow-sm' style='width: 55px; height: 55px; object-fit: cover;'></td>";
+                                        // L'attribut onerror permet de remplacer l'image si elle n'existe pas dans ton dossier
+                                        echo "<td class='ps-4'><img src='{$photo_url}' onerror=\"this.onerror=null;this.src='{$avatar_secours}';\" alt='Photo' class='rounded-circle border border-2 border-white shadow-sm' style='width: 55px; height: 55px; object-fit: cover;'></td>";
                                         echo "<td class='fw-bold text-uppercase'>{$nom}</td>";
                                         echo "<td>{$prenom}</td>";
-                                        // Affichage de la fonction dans un joli badge bleu
-                                        echo "<td><span class='badge bg-primary px-3 py-2 rounded-pill shadow-sm'>{$fonction}</span></td>";
-                                        echo "<td class='pe-4 text-muted' style='max-width: 300px; font-size: 0.9rem; font-style: italic;'>« {$bio} »</td>";
+                                        echo "<td><span class='badge bg-primary px-3 py-2 rounded-pill shadow-sm'>{$poste}</span></td>";
+                                        echo "<td class='pe-4'><span class='badge {$badge_color} px-3 py-2 rounded-pill shadow-sm text-uppercase'>{$groupe}</span></td>";
                                         echo "</tr>";
                                     }
                                 } else {

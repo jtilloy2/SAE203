@@ -3,84 +3,84 @@
         "id": 1,
         "nom": "Julien Tilloy",
         "poste": "Chef de Projet",
-        "photo": "img/perso1.jpg",
+        "photo": "img/utilisateurs/perso1.jpg",
         "groupe": "admin"
     },
     {
         "id": 2,
         "nom": "Julien Aluze",
         "poste": "Développeur Backend",
-        "photo": "img/perso2.jpg",
+        "photo": "img//utilisateurs/perso2.jpg",
         "groupe": "admin"
     },
     {
         "id": 3,
         "nom": "Elouan Lejoly",
         "poste": "Gestionnaire de Données",
-        "photo": "img/perso3.jpg",
+        "photo": "img/utilisateurs/perso3.jpg",
         "groupe": "manager"
     },
     {
         "id": 4,
         "nom": "Leny Chopis",
         "poste": "Développeur WordPress",
-        "photo": "img/perso4.jpg",
+        "photo": "img/utilisateurs/perso4.jpg",
         "groupe": "manager"
     },
     {
         "id": 5,
         "nom": "Antonin Chenais",
         "poste": "Web Designer",
-        "photo": "img/perso5.jpg",
+        "photo": "img/utilisateurs/perso5.jpg",
         "groupe": "salarie"
     },
     {
         "id": 6,
         "nom": "Lilan Auffray",
         "poste": "Responsable Réseaux",
-        "photo": "img/perso6.jpg",
+        "photo": "img/utilisateurs/perso6.jpg",
         "groupe": "salarie"
     },
     {
         "id": 7,
         "nom": "Alice Martin",
         "poste": "Commerciale",
-        "photo": "img/perso7.jpg",
+        "photo": "img/utilisateurs/perso7.jpg",
         "groupe": "salarie"
     },
     {
         "id": 8,
         "nom": "Thomas Bernard",
         "poste": "Technicien Maintenance",
-        "photo": "img/perso8.jpg",
+        "photo": "img/utilisateurs/perso8.jpg",
         "groupe": "salarie"
     },
     {
         "id": 9,
         "nom": "Sophie Petit",
         "poste": "Assistante de Direction",
-        "photo": "img/perso9.jpg",
+        "photo": "img/utilisateurs/perso9.jpg",
         "groupe": "direction"
     },
     {
         "id": 10,
         "nom": "Nicolas Durand",
         "poste": "Responsable Logistique",
-        "photo": "img/perso10.jpg",
+        "photo": "img/utilisateurs/perso10.jpg",
         "groupe": "manager"
     },
     {
         "id": 11,
         "nom": "Marie Leroy",
         "poste": "Conseillère Clientèle",
-        "photo": "img/perso11.jpg",
+        "photo": "img/utilisateurs/perso11.jpg",
         "groupe": "salarie"
     },
     {
         "id": 12,
         "nom": "Pierre Moreau",
         "poste": "Expert Mobilité",
-        "photo": "img/perso12.jpg",
+        "photo": "img/utilisateurs/perso12.jpg",
         "groupe": "salarie"
     }
 ]
