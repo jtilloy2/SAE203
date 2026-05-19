@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Module Témoignages JOSSEL
  * Description: Gestion interactive premium des avis clients (Zéro SQL - JSON - Largeur Optimisée).
- * Version: 2.2
+ * Version: 2.3
  * Author: Leny (Lot 4)
  */
 
@@ -117,11 +117,11 @@ function jossel_shortcode_temoignages() {
     $message = "";
 
     if ($status === 'success') {
-        $message = '<div class="alert alert-success border-0 shadow-sm mb-4" role="alert">✨ <strong>Merci !</strong> Votre avis a bien été enregistré.</div>';
+        $message = '<div class="alert alert-success border-0 shadow-sm mb-5 p-4 fs-5" role="alert">✨ <strong>Merci !</strong> Votre avis a bien été enregistré.</div>';
     } elseif ($status === 'error_write') {
-        $message = '<div class="alert alert-danger border-0 shadow-sm mb-4" role="alert">❌ Erreur système : Impossible d\'écrire dans le fichier JSON. Vérifiez les permissions.</div>';
+        $message = '<div class="alert alert-danger border-0 shadow-sm mb-5 p-4 fs-5" role="alert">❌ Erreur système : Impossible d\'écrire dans le fichier JSON. Vérifiez les permissions.</div>';
     } elseif ($status === 'error_empty') {
-        $message = '<div class="alert alert-warning border-0 shadow-sm mb-4" role="alert">⚠️ Veuillez remplir les champs obligatoires.</div>';
+        $message = '<div class="alert alert-warning border-0 shadow-sm mb-5 p-4 fs-5" role="alert">⚠️ Veuillez remplir les champs obligatoires.</div>';
     }
 
     $temoignages = file_exists(JOSSEL_JSON_TEMOIGNAGES) ? json_decode(file_get_contents(JOSSEL_JSON_TEMOIGNAGES), true) : [];
@@ -129,33 +129,47 @@ function jossel_shortcode_temoignages() {
     ob_start();
     ?>
     <style>
-        /* Styles pour améliorer l'UI du formulaire */
+        /* Styles pour améliorer l'UI et la taille du formulaire */
         .jossel-form-card {
             background: #ffffff; 
-            border-top: 5px solid #0d6efd !important;
+            border-top: 8px solid #0d6efd !important; /* Bordure plus épaisse */
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08) !important; /* Ombre plus large */
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 4rem !important;
         }
         .jossel-form-card:hover {
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08) !important;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.12) !important;
         }
         .jossel-custom-input {
+            padding: 1.1rem 1.25rem !important; /* Champs beaucoup plus larges */
+            font-size: 1.1rem !important;
             transition: all 0.2s ease-in-out;
-            border: 2px solid transparent !important;
+            border: 2px solid #e9ecef !important;
         }
         .jossel-custom-input:focus {
             background-color: #fff !important;
             border-color: #0d6efd !important;
-            box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1) !important;
+            box-shadow: 0 0 0 5px rgba(13, 110, 253, 0.15) !important;
             outline: none;
         }
         .jossel-submit-btn {
             background: linear-gradient(135deg, #0d6efd, #0a53be);
             border: none;
+            padding: 1.1rem !important;
+            font-size: 1.2rem !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.5px;
             transition: all 0.2s ease;
         }
         .jossel-submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(13, 110, 253, 0.3) !important;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(13, 110, 253, 0.35) !important;
+        }
+        .jossel-form-label {
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
         }
 
         /* Styles pour le défilement horizontal des avis */
@@ -164,16 +178,14 @@ function jossel_shortcode_temoignages() {
             flex-wrap: nowrap;
             overflow-x: auto;
             gap: 1.5rem;
-            padding: 1rem 0.5rem 1.5rem 0.5rem; /* Espace pour l'ombre et la scrollbar */
+            padding: 1rem 0.5rem 2rem 0.5rem;
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch;
-            /* Scrollbar Firefox */
             scrollbar-width: thin;
             scrollbar-color: #0d6efd #f1f1f1;
         }
-        /* Scrollbar Chrome/Safari/Edge */
         .jossel-horizontal-scroll::-webkit-scrollbar {
-            height: 8px;
+            height: 10px;
         }
         .jossel-horizontal-scroll::-webkit-scrollbar-track {
             background: #f1f1f1;
@@ -185,41 +197,43 @@ function jossel_shortcode_temoignages() {
         }
         .jossel-testimonial-item {
             flex: 0 0 auto;
-            width: 320px; /* Largeur d'une carte */
-            max-width: 85vw; /* S'assure que ça rentre sur petit écran */
+            width: 350px; /* Cartes légèrement plus larges */
+            max-width: 85vw;
             scroll-snap-align: start;
         }
         .jossel-testimonial-card {
             transition: transform 0.2s ease;
+            border: 1px solid #f8f9fa;
         }
         .jossel-testimonial-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05) !important;
         }
     </style>
 
     <div class="container-fluid w-100 p-0 jossel-module-avis">
         <?php echo $message; ?>
 
-        <div class="card border-0 shadow-sm rounded-4 mb-5 w-100 jossel-form-card">
+        <div class="card border-0 rounded-4 w-100 jossel-form-card">
             <div class="card-body p-4 p-md-5">
-                <div class="mb-4">
-                    <h4 class="fw-bold text-dark mb-1">Partagez votre expérience</h4>
-                    <p class="text-muted small mb-0">Votre avis nous aide à améliorer la qualité de nos services.</p>
+                <div class="mb-5 text-center">
+                    <h3 class="fw-bolder text-dark mb-2" style="font-size: 1.8rem;">Partagez votre expérience</h3>
+                    <p class="text-muted fs-6 mb-0">Votre avis nous aide à améliorer la qualité de nos services et guide nos futurs clients.</p>
                 </div>
                 
                 <form method="post" action="">
-                    <div class="row g-3 mb-3">
+                    <div class="row g-4 mb-4">
                         <div class="col-md-5">
-                            <label class="form-label fw-semibold text-secondary small">Nom complet *</label>
-                            <input type="text" name="nom" class="form-control form-control-lg bg-light rounded-3 fs-6 jossel-custom-input" required placeholder="Ex: Jean Dupont">
+                            <label class="form-label fw-bold text-secondary jossel-form-label">Nom complet *</label>
+                            <input type="text" name="nom" class="form-control bg-light rounded-3 jossel-custom-input" required placeholder="Ex: Jean Dupont">
                         </div>
                         <div class="col-md-5">
-                            <label class="form-label fw-semibold text-secondary small">Entreprise / Organisation</label>
-                            <input type="text" name="entreprise" class="form-control form-control-lg bg-light rounded-3 fs-6 jossel-custom-input" placeholder="Ex: ECPR Lannion">
+                            <label class="form-label fw-bold text-secondary jossel-form-label">Entreprise / Organisation</label>
+                            <input type="text" name="entreprise" class="form-control bg-light rounded-3 jossel-custom-input" placeholder="Ex: ECPR Lannion">
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label fw-semibold text-secondary small">Note globale</label>
-                            <select name="note" class="form-select form-select-lg bg-light fw-bold text-warning rounded-3 jossel-custom-input" style="cursor: pointer;">
+                            <label class="form-label fw-bold text-secondary jossel-form-label">Note globale</label>
+                            <select name="note" class="form-select bg-light fw-bold text-warning rounded-3 jossel-custom-input" style="cursor: pointer;">
                                 <option value="5" selected>5 ★★★★★</option>
                                 <option value="4">4 ★★★★</option>
                                 <option value="3">3 ★★★</option>
@@ -229,14 +243,14 @@ function jossel_shortcode_temoignages() {
                         </div>
                     </div>
 
-                    <div class="row g-3 align-items-end">
-                        <div class="col-md-9">
-                            <label class="form-label fw-semibold text-secondary small">Votre témoignage *</label>
-                            <textarea name="citation" class="form-control bg-light rounded-3 fs-6 jossel-custom-input" rows="2" required placeholder="Décrivez votre expérience avec notre équipe..."></textarea>
+                    <div class="row g-4 align-items-end">
+                        <div class="col-md-12 mb-2">
+                            <label class="form-label fw-bold text-secondary jossel-form-label">Votre témoignage *</label>
+                            <textarea name="citation" class="form-control bg-light rounded-3 jossel-custom-input" rows="4" required placeholder="Décrivez en quelques mots votre expérience avec notre équipe..."></textarea>
                         </div>
-                        <div class="col-md-3">
-                            <button type="submit" name="jossel_submit_avis" class="btn btn-primary btn-lg w-100 rounded-3 fw-bold shadow-sm fs-6 jossel-submit-btn" style="padding: 12px 0;">
-                                Envoyer mon avis
+                        <div class="col-md-12 mt-4 text-end">
+                            <button type="submit" name="jossel_submit_avis" class="btn btn-primary w-100 rounded-3 shadow-sm jossel-submit-btn">
+                                Publier mon avis maintenant
                             </button>
                         </div>
                     </div>
@@ -244,16 +258,18 @@ function jossel_shortcode_temoignages() {
             </div>
         </div>
 
-        <h3 class="fw-bold text-dark mb-4">Ce que nos clients disent de nous</h3>
+        <div class="d-flex justify-content-between align-items-end mb-4 px-2">
+            <h3 class="fw-bolder text-dark mb-0">Ce que nos clients disent de nous</h3>
+        </div>
         
         <?php if (!empty($temoignages) && is_array($temoignages)): ?>
             <div class="jossel-horizontal-scroll">
                 <?php foreach (array_reverse($temoignages) as $t): ?>
                     <div class="jossel-testimonial-item">
-                        <div class="card h-100 border-0 shadow-sm rounded-4 p-3 bg-white jossel-testimonial-card">
-                            <div class="card-body d-flex flex-column justify-content-between p-2">
+                        <div class="card h-100 shadow-sm rounded-4 p-4 bg-white jossel-testimonial-card">
+                            <div class="card-body d-flex flex-column justify-content-between p-0">
                                 <div>
-                                    <div class="mb-2" style="color: #ffb600; font-size: 1.1rem;">
+                                    <div class="mb-3" style="color: #ffb600; font-size: 1.2rem;">
                                         <?php echo str_repeat('★', intval($t['note'])); ?>
                                     </div>
                                     <p class="card-text text-secondary lh-base mb-4 fs-6" style="font-style: italic;">
@@ -262,15 +278,15 @@ function jossel_shortcode_temoignages() {
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between pt-3 border-top border-light">
                                     <div>
-                                        <h6 class="fw-bold text-dark mb-0 fs-6"><?php echo esc_html($t['nom']); ?></h6>
+                                        <h6 class="fw-bold text-dark mb-1 fs-6"><?php echo esc_html($t['nom']); ?></h6>
                                         <?php if(!empty($t['entreprise'])): ?>
-                                            <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                            <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">
                                                 <?php echo esc_html($t['entreprise']); ?>
                                             </small>
                                         <?php endif; ?>
                                     </div>
                                     <?php if(isset($t['date'])): ?>
-                                        <span class="text-muted small" style="font-size: 0.8rem;"><?php echo esc_html($t['date']); ?></span>
+                                        <span class="text-muted fw-semibold" style="font-size: 0.8rem;"><?php echo esc_html($t['date']); ?></span>
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -280,7 +296,9 @@ function jossel_shortcode_temoignages() {
             </div>
         <?php else: ?>
             <div class="col-12 p-0">
-                <p class="text-muted italic bg-light p-4 rounded-4 text-center">Aucun avis publié pour le moment. Soyez le premier !</p>
+                <div class="bg-light p-5 rounded-4 text-center border">
+                    <p class="text-muted fs-5 mb-0">Aucun avis publié pour le moment. Soyez le premier !</p>
+                </div>
             </div>
         <?php endif; ?>
     </div>
