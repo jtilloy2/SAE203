@@ -132,8 +132,8 @@ function jossel_shortcode_temoignages() {
         /* Styles pour améliorer l'UI et la taille du formulaire */
         .jossel-form-card {
             background: #ffffff; 
-            border-top: 8px solid #0d6efd !important; /* Bordure plus épaisse */
-            box-shadow: 0 15px 35px rgba(0,0,0,0.08) !important; /* Ombre plus large */
+            border-top: 8px solid #0d6efd !important;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08) !important;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             margin-bottom: 4rem !important;
         }
@@ -141,7 +141,7 @@ function jossel_shortcode_temoignages() {
             box-shadow: 0 20px 40px rgba(0,0,0,0.12) !important;
         }
         .jossel-custom-input {
-            padding: 1.1rem 1.25rem !important; /* Champs beaucoup plus larges */
+            padding: 1.1rem 1.25rem !important;
             font-size: 1.1rem !important;
             transition: all 0.2s ease-in-out;
             border: 2px solid #e9ecef !important;
@@ -197,7 +197,7 @@ function jossel_shortcode_temoignages() {
         }
         .jossel-testimonial-item {
             flex: 0 0 auto;
-            width: 350px; /* Cartes légèrement plus larges */
+            width: 350px;
             max-width: 85vw;
             scroll-snap-align: start;
         }
