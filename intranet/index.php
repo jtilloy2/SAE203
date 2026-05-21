@@ -7,7 +7,7 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-// Récupération uniforme des informations de session de ton Lot 5
+// Récupération uniforme des informations de session du Lot 5
 $role = $_SESSION['user']['role'] ?? 'salarie';
 $login = $_SESSION['user']['login'] ?? 'Utilisateur';
 
@@ -52,7 +52,7 @@ $role_affichage = ucfirst(strtolower($role));
             background-color: var(--c-fond);
             border-radius: 6px;
             transition: all 0.2s ease;
-            text-decoration: none !important; /* Enlève le soulignement du lien */
+            text-decoration: none !important;
             color: var(--c-texte) !important;
         }
         .module-card:hover {
@@ -70,7 +70,7 @@ $role_affichage = ucfirst(strtolower($role));
             border-bottom: 1px solid var(--c-structurant);
             background-color: #FAFAFA;
             border-radius: 6px 6px 0 0;
-            font-size: 2.5rem; /* Taille des émojis/icônes */
+            font-size: 2.5rem;
         }
 
         /* Boutons d'Action */
@@ -131,7 +131,7 @@ $role_affichage = ucfirst(strtolower($role));
             <div class="col">
                 <a href="clients.php" class="card h-100 module-card">
                     <div class="card-icon-container">
-                        
+                        📁
                     </div>
                     <div class="card-body p-4 text-center">
                         <h5 class="fw-bold mb-2">Annuaire Clients</h5>
@@ -143,7 +143,7 @@ $role_affichage = ucfirst(strtolower($role));
             <div class="col">
                 <a href="partenaires.php" class="card h-100 module-card">
                     <div class="card-icon-container">
-                        
+                        🤝
                     </div>
                     <div class="card-body p-4 text-center">
                         <h5 class="fw-bold mb-2">Partenaires</h5>
@@ -153,9 +153,9 @@ $role_affichage = ucfirst(strtolower($role));
             </div>
 
             <div class="col">
-                <a href="salaries.php" class="card h-100 module-card">
+                <a href="annuaire.php" class="card h-100 module-card">
                     <div class="card-icon-container">
-                        
+                        👥
                     </div>
                     <div class="card-body p-4 text-center">
                         <h5 class="fw-bold mb-2">Annuaire Salariés</h5>
@@ -167,7 +167,7 @@ $role_affichage = ucfirst(strtolower($role));
             <div class="col">
                 <a href="fichiers.php" class="card h-100 module-card">
                     <div class="card-icon-container">
-                        
+                        ☁️
                     </div>
                     <div class="card-body p-4 text-center">
                         <h5 class="fw-bold mb-2">Fichiers Partagés</h5>
