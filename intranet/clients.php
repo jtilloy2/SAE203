@@ -51,7 +51,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
             fputcsv($handle, $ligne, ","); 
         }
         fclose($handle);
-        header('Location: client.php?msg=deleted');
+        header('Location: clients.php?msg=deleted');
         exit;
     }
 }
@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $handle = fopen($fichier_csv, 'a');
         fputcsv($handle, $nouveau_client, ",");
         fclose($handle);
-        header('Location: client.php?msg=added');
+        header('Location: clients.php?msg=added');
         exit;
     }
 
@@ -92,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             }
             fclose($handle);
             
-            header('Location: client.php?msg=edited');
+            header('Location: clients.php?msg=edited');
             exit;
         }
     }
@@ -292,7 +292,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                     <div class='modal fade' id='editModal{$id}' tabindex='-1' aria-hidden='true'>
                                       <div class='modal-dialog'>
                                         <div class='modal-content text-start'>
-                                          <form method='POST' action='client.php'>
+                                          <form method='POST' action='clients.php'>
                                               <input type='hidden' name='action' value='edit'>
                                               <input type='hidden' name='id' value='{$id}'>
                                               <div class='modal-header'>
@@ -341,7 +341,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     <div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content text-start">
-          <form method="POST" action="client.php">
+          <form method="POST" action="clients.php">
               <input type="hidden" name="action" value="add">
               <div class="modal-header">
                   <h5 class="modal-title fw-bold">Nouveau Profil Client</h5>
